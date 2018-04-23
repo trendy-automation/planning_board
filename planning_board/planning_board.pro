@@ -4,6 +4,12 @@
 #
 #-------------------------------------------------
 
+include(../../../shared_classes/message_handler/message_handler.pri)
+include(../../../shared_classes/single_apprun/single_apprun.pri)
+include(../../../shared_classes/excel_class/excel_class.pri)
+
+CONFIG  += c++17
+
 QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
