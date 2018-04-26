@@ -39,10 +39,12 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-        mainwindow.cpp
+        mainwindow.cpp \
+        ComboBoxDelegate.cpp
 
 HEADERS += \
-        mainwindow.h
+        mainwindow.h \
+        ComboBoxDelegate.h
 
 FORMS += \
         mainwindow.ui

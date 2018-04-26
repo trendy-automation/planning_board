@@ -3,6 +3,7 @@
 //#include "excel_class.h"
 #include "message_handler.h"
 #include "single_apprun.h"
+#include <QDebug>
 
 int main(int argc, char *argv[])
 {

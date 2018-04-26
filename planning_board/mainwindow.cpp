@@ -2,7 +2,7 @@
 #include "ui_mainwindow.h"
 #include <QTableWidget>
 #include <QHeaderView>
-//#include <QGridLayout>
+#include "ComboBoxDelegate.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -10,12 +10,13 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     if (QApplication::applicationDirPath().toLower().contains("build")) {
-        this->setGeometry(50,50,800,600);
+        this->setGeometry(50,50,850,600);
     } else {
         QApplication::setOverrideCursor(Qt::BlankCursor);
         this->setWindowState(Qt::WindowFullScreen);
         this->setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
     }
+    this->setWindowTitle("Доска планирования производства");
     QTableWidget *tableWidget;
     tableWidget = new QTableWidget(9, 4, this);
 
@@ -23,25 +24,32 @@ MainWindow::MainWindow(QWidget *parent) :
     headers << "Период" <<  "План" <<  "Факт" <<  "Причина простоя";
     tableWidget->setHorizontalHeaderLabels(headers);
     tableWidget->setVerticalHeaderLabels(QStringList()<<""<<""<<""<<""<<""<<""<<""<<""<<"");
+
     //QGridLayout * gridlay = new QGridLayout;
     //tableWidget->setLayout(gridlay);
     this->setCentralWidget(tableWidget);
-    //tableWidget->horizontalHeader()->setSectionResizeMode ( QHeaderView::Stretch );
+    tableWidget->setColumnWidth(0,250);
+    tableWidget->horizontalHeader()->setFont(QFont("Arial",30));
     tableWidget->horizontalHeader()->setStretchLastSection(true);
     tableWidget->verticalHeader()->setSectionResizeMode ( QHeaderView::Stretch );
-    //tableWidget->verticalHeader()->setFirstSectionMovable(false);
     //tableWidget->horizontalHeader()->setDefaultSectionSize(100);
-    tableWidget->setSelectionMode(QAbstractItemView::NoSelection);
+    tableWidget->horizontalHeader()->setSectionsClickable(false);
+    tableWidget->setEditTriggers(QAbstractItemView::AllEditTriggers);
+    tableWidget->setFont(QFont("Helvetica [Croyx]",30));
+    ComboBoxDelegate *comboDelegate = new ComboBoxDelegate(this);
+    tableWidget->setItemDelegateForColumn(3,comboDelegate);
+
+
+    //tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+    //tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
     //tableWidget->horizontalHeader()->setDefaultAlignment(Qt::AlignCenter);
     //tableWidget->verticalHeader()->setDefaultAlignment(Qt::AlignCenter);
     //tableWidget->model()->setData(tableWidget->model()->index(row,column),Qt::AlignCenter,Qt::TextAlignmentRole);
 
-    QTableWidgetItem * protoitem = new QTableWidgetItem();
-    protoitem->setTextAlignment(Qt::AlignCenter);
-
-    protoitem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
-
-    tableWidget->setItemPrototype(protoitem);
+//    QTableWidgetItem * protoitem = new QTableWidgetItem();
+//    protoitem->setTextAlignment(Qt::AlignCenter);
+//    protoitem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+//    tableWidget->setItemPrototype(protoitem);
 
     tableWidget->setItem(0, 0, new QTableWidgetItem("6.00-7.00"));
     tableWidget->setItem(1, 0, new QTableWidgetItem("7.00-8.00"));
@@ -73,9 +81,19 @@ MainWindow::MainWindow(QWidget *parent) :
     tableWidget->setItem(7, 2, new QTableWidgetItem("0"));
     tableWidget->setItem(8, 2, new QTableWidgetItem("0"));
 
-    for(int i=0;i<9;++i)
-        for(int j=0;j<3;++j)
+    for(int j=0;j<3;++j) {
+        tableWidget->resizeColumnsToContents();
+        for(int i=0;i<9;++i) {
             tableWidget->item(i,j)->setTextAlignment( Qt::AlignCenter );
+            if(j==3){
+                tableWidget->item(i,j)->setFlags(tableWidget->item(i,j)->flags() & Qt::ItemIsEditable);
+
+            }
+            else
+                tableWidget->item(i,j)->setFlags(tableWidget->item(i,j)->flags() & ~Qt::ItemIsEditable);
+        }
+    }
+
 }
 
 MainWindow::~MainWindow()
