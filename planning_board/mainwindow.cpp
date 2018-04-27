@@ -85,10 +85,8 @@ MainWindow::MainWindow(QWidget *parent) :
         tableWidget->resizeColumnsToContents();
         for(int i=0;i<9;++i) {
             tableWidget->item(i,j)->setTextAlignment( Qt::AlignCenter );
-            if(j==3){
+            if(j==3)
                 tableWidget->item(i,j)->setFlags(tableWidget->item(i,j)->flags() & Qt::ItemIsEditable);
-
-            }
             else
                 tableWidget->item(i,j)->setFlags(tableWidget->item(i,j)->flags() & ~Qt::ItemIsEditable);
         }
@@ -99,4 +97,8 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void eventFilter(QObject *obj, QEvent *evt) {
+    qDebug() << obj << evt;
 }

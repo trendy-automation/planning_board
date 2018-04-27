@@ -6,6 +6,8 @@
 
 #include <QItemDelegate>
 
+#include <QDebug>
+
 class QModelIndex;
 class QWidget;
 class QVariant;
