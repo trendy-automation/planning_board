@@ -1,66 +1,33 @@
 #include "mainwindow.h"
 #include <QApplication>
-//#include "excel_class.h"
 #include "message_handler.h"
 #include "single_apprun.h"
 #include <QDebug>
 #include <QTimer>
 #include <QThread>
-
-
+#include "planner.h"
+#include <QDateTime>
 
 #include <windows.h>
 #include <iostream>
-//#include <stdio.h>
-//using namespace std;
-//HHOOK hkb;
-//HINSTANCE hins;
-
-//LRESULT __declspec(dllexport)__stdcall  CALLBACK KeyboardProc(int nCode,WPARAM wParam, LPARAM lParam)
-//    {
-//        if (wParam == VK_F1)
-//            {
-//        qDebug() <<"Вы нажали F1";
-//            }
-//        qDebug() << nCode << wParam << lParam;
-
-
-//    return CallNextHookEx(hkb, nCode, wParam, lParam );
-//    }
-
-//BOOL __declspec(dllexport)__stdcall installhook()
-//    {
-//    hkb=SetWindowsHookEx(WH_KEYBOARD,(HOOKPROC)KeyboardProc, hins,0);
-//    return TRUE;
-//    }
-
-
-//#ifndef HINSTANCE
-//Q_DECLARE_HANDLE(HINSTANCE);
-//#endif
-//QT_BEGIN_NAMESPACE
-//Q_CORE_EXPORT HINSTANCE qWinAppInst();
-
-//LRESULT CALLBACK HookProc(int nCode, WPARAM wParam, LPARAM lParam)
-//{
-//    qDebug() << nCode << wParam << lParam;
-//    return CallNextHookEx(NULL, nCode, wParam, lParam);
-//}
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     MessageHandler *msgHandler = new MessageHandler;
+    qRegisterMetaType<QList<int>>("QList<int>");
+    Planner *planner = new Planner;
+    planner->readExcelData();
+    //qtimer uupdate screen
+    //button update work content
+    //memory of plan start time for recalc on addPlan
 
-//    if (SetWindowsHookEx(WH_KEYBOARD_LL, HookProc, qWinAppInst(), NULL) == 0)
-//        qDebug() << "Hook failed for application instance" << qWinAppInst() << "with error:" << GetLastError();
-//    hkb=SetWindowsHookEx(WH_KEYBOARD_LL,(HOOKPROC)KeyboardProc, hins,0);
     QThread *keyThread = new QThread;
     QTimer *keyTimer = new QTimer(0);
     QByteArray *buffer = new QByteArray;
     QByteArray *buf = new QByteArray;
 
-    QObject::connect(keyTimer,&QTimer::timeout,[buf,buffer](){
+    QObject::connect(keyTimer,&QTimer::timeout,[buf,buffer,planner](){
         for (char i = 0; i < 255; i++)
         {
             int keyState = GetAsyncKeyState(i);
@@ -70,6 +37,7 @@ int main(int argc, char *argv[])
                     buffer->clear();
                     buffer->append(*buf);
                     buf->clear();
+                    planner->addPlan(*buffer);
                     qDebug()<<*buffer;
                 }
                 if((short)i>=48 && (short)i<=57)
@@ -97,6 +65,27 @@ int main(int argc, char *argv[])
 
     MainWindow w;
     w.show();
+    QObject::connect(planner,&Planner::planChanged,&w,&MainWindow::updatePlan);
+
+
+    QTimer *tableTimer = new QTimer(0);
+    QObject::connect(tableTimer,&QTimer::timeout,[tableTimer,planner,&w](){
+        QTime ct = QTime::currentTime();
+        //qDebug()<<"tableTimer lymbda"<<qMax(60000-2000,ct.msecsTo(QTime(ct.hour(),ct.minute(),59))+1000);
+        tableTimer->start(qMax(3600000-2000,ct.msecsTo(QTime(ct.hour(),59,59))+1000));
+        //tableTimer->start(qMax(60000-2000,ct.msecsTo(QTime(ct.hour(),ct.minute(),59))+1000));
+        planner->addPlan("");
+        if(ct.hour()==0||ct.hour()==6||ct.hour()==15){
+            w.shiftReset();
+            //excel shift report
+        }
+
+    });
+    QTime ct = QTime::currentTime();
+    tableTimer->start(ct.msecsTo(QTime(ct.hour(),59,59)));
+    //tableTimer->start(ct.msecsTo(QTime(ct.hour(),ct.minute(),59))+1000);
 
     return a.exec();
 }
+
+

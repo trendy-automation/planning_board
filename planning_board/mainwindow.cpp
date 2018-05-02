@@ -1,8 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <QTableWidget>
 #include <QHeaderView>
 #include "ComboBoxDelegate.h"
+#include <QTime>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -17,7 +17,6 @@ MainWindow::MainWindow(QWidget *parent) :
         this->setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
     }
     this->setWindowTitle("Доска планирования производства");
-    QTableWidget *tableWidget;
     tableWidget = new QTableWidget(9, 4, this);
 
     QStringList headers;
@@ -51,46 +50,24 @@ MainWindow::MainWindow(QWidget *parent) :
 //    protoitem->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
 //    tableWidget->setItemPrototype(protoitem);
 
-    tableWidget->setItem(0, 0, new QTableWidgetItem("6.00-7.00"));
-    tableWidget->setItem(1, 0, new QTableWidgetItem("7.00-8.00"));
-    tableWidget->setItem(2, 0, new QTableWidgetItem("8.00-9.00"));
-    tableWidget->setItem(3, 0, new QTableWidgetItem("9.00-10.00"));
-    tableWidget->setItem(4, 0, new QTableWidgetItem("10.00-11.00"));
-    tableWidget->setItem(5, 0, new QTableWidgetItem("11.00-12.00"));
-    tableWidget->setItem(6, 0, new QTableWidgetItem("12.00-13.00"));
-    tableWidget->setItem(7, 0, new QTableWidgetItem("13.00-14.00"));
-    tableWidget->setItem(8, 0, new QTableWidgetItem("14.00-15.00"));
-
-    tableWidget->setItem(0, 1, new QTableWidgetItem("100"));
-    tableWidget->setItem(1, 1, new QTableWidgetItem("100"));
-    tableWidget->setItem(2, 1, new QTableWidgetItem("100"));
-    tableWidget->setItem(3, 1, new QTableWidgetItem("100"));
-    tableWidget->setItem(4, 1, new QTableWidgetItem("50"));
-    tableWidget->setItem(5, 1, new QTableWidgetItem("100"));
-    tableWidget->setItem(6, 1, new QTableWidgetItem("100"));
-    tableWidget->setItem(7, 1, new QTableWidgetItem("100"));
-    tableWidget->setItem(8, 1, new QTableWidgetItem("100"));
-
-    tableWidget->setItem(0, 2, new QTableWidgetItem("0"));
-    tableWidget->setItem(1, 2, new QTableWidgetItem("0"));
-    tableWidget->setItem(2, 2, new QTableWidgetItem("0"));
-    tableWidget->setItem(3, 2, new QTableWidgetItem("0"));
-    tableWidget->setItem(4, 2, new QTableWidgetItem("0"));
-    tableWidget->setItem(5, 2, new QTableWidgetItem("0"));
-    tableWidget->setItem(6, 2, new QTableWidgetItem("0"));
-    tableWidget->setItem(7, 2, new QTableWidgetItem("0"));
-    tableWidget->setItem(8, 2, new QTableWidgetItem("0"));
+    shiftReset();
+    //qDebug()<<"end shiftReset";
 
     for(int j=0;j<3;++j) {
         tableWidget->resizeColumnsToContents();
         for(int i=0;i<9;++i) {
+            //qDebug()<<"for"<<i<<j;
+
             tableWidget->item(i,j)->setTextAlignment( Qt::AlignCenter );
             if(j==3)
                 tableWidget->item(i,j)->setFlags(tableWidget->item(i,j)->flags() & Qt::ItemIsEditable);
             else
                 tableWidget->item(i,j)->setFlags(tableWidget->item(i,j)->flags() & ~Qt::ItemIsEditable);
+            //qDebug()<<"end if";
+
         }
     }
+    //qDebug()<<"end MainWindow";
 
 }
 
@@ -99,6 +76,58 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void eventFilter(QObject *obj, QEvent *evt) {
-    qDebug() << obj << evt;
+
+void MainWindow::updatePlan(QList<int> plan)
+{
+    //qDebug()<<"plan"<<plan;
+    int itemsCount=9;
+    int row;
+    QTime ct = QTime::currentTime();
+    if(ct.hour()<6){
+        row=ct.hour();
+        itemsCount=6;
+    }
+    else if (ct.hour()<15)
+        row=ct.hour()-6;
+    else
+        row=ct.hour()-15;
+    //qDebug()<<"row="<<row<<"hour"<<QTime::currentTime().hour()<<"plan"<<plan;
+    while (!plan.isEmpty() && row<itemsCount) {
+        //qDebug()<<"row="<<row;
+        tableWidget->setItem(row, 1, new QTableWidgetItem(QString::number(plan.takeAt(0))));
+        row++;
+    }
+
 }
+
+void MainWindow::shiftReset()
+{
+    int itemsCount=9;
+    int startHour;
+    QTime ct = QTime::currentTime();
+    if(ct.hour()<6) {
+        itemsCount=6;
+        startHour=0;
+    }
+    else if (ct.hour()<15)
+        startHour=6;
+    else
+        startHour=15;
+
+    for(int i=0;i<9;++i) {
+        if(i<itemsCount){
+            QString period=QString("%1.00-%2.00").arg(startHour+i).arg((startHour+i+1)%24);
+            tableWidget->setItem(i, 0, new QTableWidgetItem(period));
+            tableWidget->setItem(i, 1, new QTableWidgetItem("0"));
+            tableWidget->setItem(i, 2, new QTableWidgetItem("0"));
+        } else {
+            tableWidget->setItem(i, 0, new QTableWidgetItem(""));
+            tableWidget->setItem(i, 1, new QTableWidgetItem(""));
+            tableWidget->setItem(i, 2, new QTableWidgetItem(""));
+        }
+        tableWidget->setItem(i, 3, new QTableWidgetItem(""));
+    }
+
+
+}
+

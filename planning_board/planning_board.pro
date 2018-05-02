@@ -6,9 +6,9 @@
 
 include(../../../shared_classes/message_handler/message_handler.pri)
 include(../../../shared_classes/single_apprun/single_apprun.pri)
-#include(../../../shared_classes/excel_class/excel_class.pri)
+include(../../../shared_classes/qtxlsx/qtxlsx.pri)
 
-DEFINES += DEBUG_NAME='\\"planning_board\\"'
+DEFINES += DEBUG_NAME=\\\"planning_board\\\"
 DEFINES += APP_NAME='\\"PLANNING_BOARD\\"'
 DEFINES += BUILD_PATH='\"$${OUT_PWD}\"'
 DEFINES += APP_OPTION_WATHCDOG='\\"watchdog\\"'
@@ -18,12 +18,11 @@ DEFINES += APP_VER='\\"1.0\\"'
 
 CONFIG  += c++17
 
-QT      += core gui network
-
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT      += core gui network widgets
 
 TARGET = planning_board
 TEMPLATE = app
+DESTDIR = $${OUT_PWD}/release
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
@@ -40,11 +39,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-        ComboBoxDelegate.cpp
+        ComboBoxDelegate.cpp \
+        planner.cpp
 
 HEADERS += \
         mainwindow.h \
-        ComboBoxDelegate.h
+        ComboBoxDelegate.h \
+        planner.h
 
 FORMS += \
         mainwindow.ui

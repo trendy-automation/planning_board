@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QTableWidget>
+
 
 namespace Ui {
 class MainWindow;
@@ -13,10 +15,18 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget *parent = 0);
+    void shiftReset();
+
     ~MainWindow();
+
+public slots:
+    void updatePlan(QList<int> plan);
+
 
 private:
     Ui::MainWindow *ui;
+    QTableWidget *tableWidget;
+
 };
 
 #endif // MAINWINDOW_H
