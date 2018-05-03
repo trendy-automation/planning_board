@@ -11,14 +11,31 @@
 #include <windows.h>
 #include <iostream>
 
+struct planItem
+{
+    //planItem() {}
+    int number;
+    int countPlan;
+    int countActual;
+    QByteArray reference;
+    int lostTime;
+    QString notes;
+    int countScrap;
+
+    int workContent;
+    QByteArray kanban;
+
+};
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     MessageHandler *msgHandler = new MessageHandler;
     qRegisterMetaType<QList<int>>("QList<int>");
+    qRegisterMetaType<QList<planItem>>("QList<planItem>");
     Planner *planner = new Planner;
     planner->readExcelData();
-    //qtimer uupdate screen
+    //qtimer update screen
     //button update work content
     //memory of plan start time for recalc on addPlan
 
@@ -62,6 +79,7 @@ int main(int argc, char *argv[])
         return 0;
     }
 
+    QList<planItem> plan;
 
     MainWindow w;
     w.show();

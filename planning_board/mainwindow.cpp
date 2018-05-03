@@ -20,9 +20,12 @@ MainWindow::MainWindow(QWidget *parent) :
     tableWidget = new QTableWidget(9, 4, this);
 
     QStringList headers;
-    headers << "Период" <<  "План" <<  "Факт" <<  "Причина простоя";
+    headers << "Период" <<  "План" <<  "Факт"<<  "Референс"<<  "Потерянное\nвремя" <<  "Замечания" << "Брак";
     tableWidget->setHorizontalHeaderLabels(headers);
     tableWidget->setVerticalHeaderLabels(QStringList()<<""<<""<<""<<""<<""<<""<<""<<""<<"");
+    tableWidget->setColumnHidden(3,true);
+    tableWidget->setColumnHidden(4,true);
+    tableWidget->setColumnHidden(6,true);
 
     //QGridLayout * gridlay = new QGridLayout;
     //tableWidget->setLayout(gridlay);
@@ -39,8 +42,8 @@ MainWindow::MainWindow(QWidget *parent) :
     tableWidget->setItemDelegateForColumn(3,comboDelegate);
 
 
-    //tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
-    //tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+    tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+    tableWidget->setSelectionBehavior(QAbstractItemView::SelectItems);
     //tableWidget->horizontalHeader()->setDefaultAlignment(Qt::AlignCenter);
     //tableWidget->verticalHeader()->setDefaultAlignment(Qt::AlignCenter);
     //tableWidget->model()->setData(tableWidget->model()->index(row,column),Qt::AlignCenter,Qt::TextAlignmentRole);
@@ -86,11 +89,19 @@ void MainWindow::updatePlan(QList<int> plan)
     if(ct.hour()<6){
         row=ct.hour();
         itemsCount=6;
+        tableWidget->setRowHidden(6,true);
+        tableWidget->setRowHidden(7,true);
+        tableWidget->setRowHidden(8,true);
     }
-    else if (ct.hour()<15)
-        row=ct.hour()-6;
-    else
-        row=ct.hour()-15;
+    else {
+        tableWidget->setRowHidden(6,false);
+        tableWidget->setRowHidden(7,false);
+        tableWidget->setRowHidden(8,false);
+        if (ct.hour()<15)
+            row=ct.hour()-6;
+        else
+            row=ct.hour()-15;
+    }
     //qDebug()<<"row="<<row<<"hour"<<QTime::currentTime().hour()<<"plan"<<plan;
     while (!plan.isEmpty() && row<itemsCount) {
         //qDebug()<<"row="<<row;
@@ -126,6 +137,20 @@ void MainWindow::shiftReset()
             tableWidget->setItem(i, 2, new QTableWidgetItem(""));
         }
         tableWidget->setItem(i, 3, new QTableWidgetItem(""));
+    }
+
+
+}
+
+void MainWindow::toggleRow(int row)
+{
+    tableWidget->setColumnHidden(3,!tableWidget->isColumnHidden(3));
+    tableWidget->setColumnHidden(4,!tableWidget->isColumnHidden(4));
+    tableWidget->setColumnHidden(6,!tableWidget->isColumnHidden(6));
+    for(int i=0;i<9;++i) {
+        tableWidget->setItem(i, 0, new QTableWidgetItem(""));
+        tableWidget->setItem(i, 1, new QTableWidgetItem(""));
+        tableWidget->setItem(i, 2, new QTableWidgetItem(""));
     }
 
 
