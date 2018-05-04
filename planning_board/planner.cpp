@@ -3,7 +3,7 @@
 #include <QDebug>
 
 
-Planner::Planner(QObject *parent) : QObject(parent)
+Planner::Planner(QObject *parent) : QAbstractTableModel(parent)
 {
     //qRegisterMetaType<QList<task>>("QList<task>");
     //qRegisterMetaType<task>("task");
@@ -63,3 +63,19 @@ QList<int> Planner::getPlan()
     //qDebug()<<"planList"<<planList;
     return planList;
 }
+
+int MyModel::rowCount(const QModelIndex & /*parent*/) const
+{
+   return 2;
+}
+
+int MyModel::columnCount(const QModelIndex & /*parent*/) const
+{
+    return 3;
+}
+
+QVariant MyModel::data(const QModelIndex &index, int role) const
+{
+
+}
+

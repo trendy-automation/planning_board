@@ -24,8 +24,15 @@ struct planItem
 
     int workContent;
     QByteArray kanban;
-
+    QByteArray sebango;
 };
+
+struct partItem
+{
+    int workContent;
+    QByteArray kanban;
+};
+
 
 int main(int argc, char *argv[])
 {
