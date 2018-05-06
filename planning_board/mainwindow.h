@@ -14,19 +14,20 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
-    void shiftReset();
-    void toggleRow(int row);
+    explicit MainWindow(QAbstractTableModel*model,QWidget *parent = 0);
+//    void shiftReset();
+//    void toggleRow(int row);
 
     ~MainWindow();
 
 public slots:
-    void updatePlan(QList<int> plan);
+//    void updatePlan(QList<int> plan);
 
 
 private:
     Ui::MainWindow *ui;
-    QTableWidget *tableWidget;
+//    QTableWidget *tableWidget;
+    QTableView *tableView;
 
 };
 
