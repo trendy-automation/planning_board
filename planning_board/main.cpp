@@ -17,10 +17,10 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     MessageHandler *msgHandler = new MessageHandler;
-    qRegisterMetaType<QList<int>>("QList<int>");
-//    qRegisterMetaType<QList<planItem>>("QList<planItem>");
+    qRegisterMetaType<QList<QList<hourItem>>>("QList<QList<hourItem>>");
+    qRegisterMetaType<QList<planItem>>("QList<planItem>");
     Planner *planner = new Planner;
-    planner->readExcelData();
+    //planner->readExcelData();
     //qtimer update screen
     //button update work content
     //memory of plan start time for recalc on addPlan
@@ -71,22 +71,6 @@ int main(int argc, char *argv[])
     //QObject::connect(planner,&Planner::planChanged,&w,&MainWindow::updatePlan);
 
 
-//    QTimer *tableTimer = new QTimer(0);
-//    QObject::connect(tableTimer,&QTimer::timeout,[tableTimer,planner,&w](){
-//        QTime ct = QTime::currentTime();
-//        //qDebug()<<"tableTimer lymbda"<<qMax(60000-2000,ct.msecsTo(QTime(ct.hour(),ct.minute(),59))+1000);
-//        tableTimer->start(qMax(3600000-2000,ct.msecsTo(QTime(ct.hour(),59,59))+1000));
-//        //tableTimer->start(qMax(60000-2000,ct.msecsTo(QTime(ct.hour(),ct.minute(),59))+1000));
-//        planner->addPlan("");
-//        if(ct.hour()==0||ct.hour()==6||ct.hour()==15){
-//            w.shiftReset();
-//            //excel shift report
-//        }
-
-//    });
-//    QTime ct = QTime::currentTime();
-//    tableTimer->start(ct.msecsTo(QTime(ct.hour(),59,59)));
-//    //tableTimer->start(ct.msecsTo(QTime(ct.hour(),ct.minute(),59))+1000);
 
     return a.exec();
 }

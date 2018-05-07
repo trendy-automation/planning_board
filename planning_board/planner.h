@@ -2,64 +2,90 @@
 #define Planner_H
 
 #include <QAbstractTableModel>
-#include <QAbstractItemView>
 #include <QMap>
-#include "ComboBoxDelegate.h"
 
 
 #include "xlsxdocument.h"
 QTXLSX_USE_NAMESPACE
 
+
+struct kanbanItem
+{
+    int countParts;
+    int workContent;
+    QByteArray reference;
+    QByteArray sebango;
+    QByteArray kanban;
+    kanbanItem(){
+        countParts=0;
+        workContent=0;
+        reference="";
+        sebango="";
+        kanban="";
+    }
+};
+
 struct planItem
 {
-    int number;
-    int countPlan;
-    int countActual;
-    QByteArray reference;
-    int lostTime;
-    QString notes;
+    kanbanItem kanban;
     int countScrap;
+    bool done; //fake
+    QString scrapNotes;
 
-    int workContent;
-    QByteArray kanban;
-    QByteArray sebango;
+    planItem(kanbanItem extKanban=kanbanItem()){
+        kanban=extKanban;
+        countScrap=0;
+        done=false;
+        scrapNotes="";
+    }
 };
 
-struct partItem
+struct hourItem
 {
-    int workContent;
-    QByteArray kanban;
+    QList<planItem> houtPlan;
+    int lostTime;
+    QString lostTimeNotes;
+    hourItem(){
+        houtPlan=QList<planItem>();
+        lostTime=0;
+        lostTimeNotes="";
+    }
 };
+
 
 class Planner : public QAbstractTableModel
 {
     Q_OBJECT
 public:
-    Planner(QObject *parent=0);
+    explicit Planner(QObject *parent=0);
     QVariant headerData(int section, Qt::Orientation orientation, int role) const override ;
     int rowCount(const QModelIndex &parent = QModelIndex()) const override ;
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-
-//    explicit Planner(QObject *parent = nullptr);
     bool readExcelData(const QString &fileName="work_content.xlsx");
-    void addPlan(const QByteArray &kanban);
-//    QList<int> getPlan();
     bool setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole) override;
     Qt::ItemFlags flags(const QModelIndex & index) const override ;
+
+public slots:
+    void addKanban(const QByteArray &kanban);
+
 private:
-    QString m_gridData[9][7];  //holds text entered into QTableView
-    QMap<QByteArray,int> workContentMap;
-    //QList<task> plan;
-    //QList<task> curentHourPlan;
+    void addPlan(const planItem &plan);
 
 signals:
 //    planChanged(QList<int> plan);
     void editCompleted(const QString &);
 
 
-public slots:
-    void timerHit();
+private slots:
+    void shiftReset();
+
+private:
+
+    QString m_gridData[9][7];  //holds text entered into QTableView
+    QMap<QByteArray,kanbanItem> kanbanMap;
+    QList<hourItem> planBoard;
+
 };
 
 #endif // Planner_H

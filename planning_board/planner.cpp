@@ -5,92 +5,96 @@
 
 Planner::Planner(QObject *parent) : QAbstractTableModel(parent)
 {
-    //qRegisterMetaType<QList<task>>("QList<task>");
-    //qRegisterMetaType<task>("task");
-//    setHeaderData(0, Qt::Horizontal, tr("Период"));
-//    setHeaderData(1, Qt::Horizontal, tr("План"));
-
-    //    tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
-    //    tableWidget->setSelectionBehavior(QAbstractItemView::SelectItems);
-        ComboBoxDelegate *comboDelegate = new ComboBoxDelegate(this);
-        //QAbstractItemView::setItemDelegateForColumn();
-
-        //setItemDelegateForColumn();
-//        this->setItemData()
-//        tableWidget->setItemDelegateForColumn(3,comboDelegate);
-
-
+    this->readExcelData();
+    QTimer *hourTimer = new QTimer(this);
+    QObject::connect(tableTimer,&QTimer::timeout,[hourTimer,this](){
+        QTime ct = QTime::currentTime();
+        hourTimer->start(qMax(3600000-2000,ct.msecsTo(QTime(ct.hour(),59,59))+1000));
+        if(ct.hour()==0||ct.hour()==6||ct.hour()==15)
+            this->shiftReset();
+        else
+            this->planUpdate();
+    });
+    QTime ct = QTime::currentTime();
+    hourTimer->start(ct.msecsTo(QTime(ct.hour(),59,59)));
 }
 
 bool Planner::readExcelData(const QString &fileName)
 {
-    workContentMap.clear();
+    kanbanMap.clear();
     Document *xlsx= new Document(fileName);
     xlsx->saveAs(fileName);
-    QByteArray kanban;
-    int workContent;
     int i=2;
-    kanban=xlsx->read(i,1).toByteArray();
-    workContent=xlsx->read(i,2).toInt();
-    while (!kanban.isEmpty()){
+    while (!xlsx->read(i,1).toByteArray().isEmpty()){
+        if(xlsx->read(i,2).toInt()<3600){
+            kanbanItem kanbanItm;
+            kanbanItm.kanban=xlsx->read(i,1).toByteArray();
+            kanbanItm.workContent=xlsx->read(i,2).toInt();
+            kanbanItm.countParts=xlsx->read(i,3).toByteArray();
+            kanbanItm.reference=xlsx->read(i,4).toByteArray();
+            kanbanItm.sebango=xlsx->read(i,5).toByteArray();
+            kanbanMap.insert(kanban,kanbanItm);
+        }
         i++;
-        //qDebug()<<"kanban"<<kanban<<"workContent"<<workContent;
-        if(workContent<3600)
-            workContentMap.insert(kanban,workContent);
-        kanban=xlsx->read(i,1).toByteArray();
-        workContent=xlsx->read(i,2).toInt();
     }
-
     return true;
 }
 
-void Planner::addPlan(const QByteArray &kanban)
+void Planner::addKanban(const QByteArray &kanban)
 {
-    //qDebug()<<kanban<<workContentMap;
-//    if(workContentMap.contains(kanban))
-//        plan.append({kanban,workContentMap.value(kanban)});
-    //emit planChanged(getPlan());
+    if(kanbanMap.contains(kanban))
+        addPlan(planItem(kanbanMap.value(kanban)));
 }
 
-//QList<int> Planner::getPlan()
-//{
-//    QList<int> planList;
-//    int partsCount=0;
-//    QList<task> planCopy;
-//    planCopy.append(plan);
-//    //qDebug()<<"getPlan";
-//    int hourValue=3600-QTime::currentTime().minute()*60+QTime::currentTime().second();
-//    while (!planCopy.isEmpty()){
-//        //qDebug()<<"planCopy.at(0).workContent"<<planCopy.at(0).workContent;
-//        while (planCopy.at(0).workContent<hourValue){
-//            hourValue-=planCopy.takeAt(0).workContent;
-//            partsCount++;
-//            if(planCopy.isEmpty())
-//                break;
-//            //qDebug()<<"partsCount"<<partsCount;
-//        }
-//        planList.append(partsCount);
-//        partsCount=0;
-//        hourValue=3600;
-//    }
-//    //qDebug()<<"planList"<<planList;
-//    return planList;
-//}
+void Planner::addPlan(const planItem &plan)
+{
+    QTime ct=QTime::currentTime();
+    int hourValue=3600-ct.minute()*60+ct.second();
+    int reqWC;
+    int hourNumber;
+    if(ct.hour()<6)
+        hourNumber=ct.hour();
+    else if (ct.hour()<15)
+            hourNumber=ct.hour()-6;
+        else
+            hourNumber=ct.hour()-15;
+    // update planBoard acording done
+    reqWC=0;
+
+    for(int i;i<planBoard.at(hourNumber).houtPlan.count();++i)
+        reqWC=+planBoard.at(hourNumber).houtPlan.at(i).kanban.workContent;
+    //if(hourValue>reqWC)
+
+    for(int i=hourNumber;i<planBoard.count();++i){
+        reqWC = plan.kanban.workContent*plan.kanban.countParts;
+        if(reqWC<hourValue){
+            hourValue-=reqWC;
+            plan.at(i).hourNumber=hourNumber;
+        }
+        hourNumber++;
+        hourValue=3600;
+    }
+    //we identify the top left cell
+    QModelIndex topLeft = createIndex(0,0);
+    //emit a signal to make the view reread identified data
+    emit dataChanged(topLeft, topLeft);
+}
+
 QVariant Planner::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    if (role == Qt::DisplayRole)
-    {
+
+    switch(role){
+    case Qt::DisplayRole:
         if (orientation == Qt::Horizontal) {
-            switch (section)
-            {
-            case 0:
-                return QString("first");
-            case 1:
-                return QString("second");
-            case 2:
-                return QString("third");
-            }
+            QStringList headers;
+            headers << "Период" <<  "План" <<  "Факт"<<  "Референс"<<  "Потерянное\nвремя" <<  "Замечания" << "Брак";
+            if(section>=0 && section<=6)
+                return headers.at(section);
         }
+        break;
+    case Qt::FontRole:
+        return QFont("Arial",12);
+        break;
     }
     return QVariant();
 }
@@ -110,54 +114,48 @@ QVariant Planner::data(const QModelIndex &index, int role) const
     int row = index.row();
     int col = index.column();
 
-    if (role == Qt::DisplayRole)
-    {
-        if (row == 0 && col == 0)
-        {
-            return QTime::currentTime().toString();
-        }
-    }
-    /*
-    switch(role){
-    case Qt::DisplayRole:
-        if (row == 0 && col == 1) return QString("<--left");
-        if (row == 1 && col == 1) return QString("right-->");
 
-        return QString("Row%1, Column%2")
-                .arg(row + 1)
-                .arg(col +1);
+
+    switch(role){
+    case Qt::DisplayRole: {
+            int itemsCount=9;
+            int startHour;
+            QTime ct = QTime::currentTime();
+            if(ct.hour()<6) {
+                itemsCount=6;
+                startHour=0;
+            }
+            else if (ct.hour()<15)
+                    startHour=6;
+                else
+                    startHour=15;
+
+            if(row<itemsCount){
+                switch(col){
+                    case 0:
+                        return QString("%1.00-%2.00").arg(startHour+row).arg((startHour+row+1)%24);
+                    default:
+                        return 0;
+                }
+            } else {
+                return QVariant();
+            }
         break;
+    }
     case Qt::FontRole:
-        if (row == 0 && col == 0) //change font only for cell(0,0)
-        {
-            QFont boldFont;
-            boldFont.setBold(true);
-            return boldFont;
-        }
+            return QFont("Helvetica [Croyx]",30);
         break;
     case Qt::BackgroundRole:
-
-        if (row == 1 && col == 2)  //change background only for cell(1,2)
-        {
-            QBrush redBackground(Qt::red);
-            return redBackground;
-        }
+        //QBrush redBackground(Qt::red);
+        //return redBackground;
         break;
     case Qt::TextAlignmentRole:
-
-        if (row == 1 && col == 1) //change text alignment only for cell(1,1)
-        {
-            return Qt::AlignRight + Qt::AlignVCenter;
-        }
+        return Qt::AlignCenter;
         break;
-    case Qt::CheckStateRole:
-
-        if (row == 1 && col == 0) //add a checkbox to cell(1,0)
-        {
-            return Qt::Checked;
-        }
+    //case Qt::CheckStateRole:
+        //return Qt::Checked;
     }
-*/
+
     return QVariant();
 }
 
@@ -183,11 +181,30 @@ bool Planner::setData(const QModelIndex & index, const QVariant & value, int rol
 
 Qt::ItemFlags Planner::flags(const QModelIndex & index) const
 {
-   return Qt::ItemIsEditable | QAbstractTableModel::flags(index);
+    if(index.column()==3)
+        return QAbstractTableModel::flags(index) & ~Qt::ItemIsEditable;
+    else
+        return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
 }
 
-void Planner::timerHit()
+void Planner::shiftReset()
 {
+    //save to shift report to Excel
+
+    plan.clear();
+
+//    for(int i=0;i<this->rowCount();++i) {
+//        plan.at(i).countActual=0;
+//        plan.at(i).countPlan=0;
+//        plan.at(i).countScrap=0;
+//        plan.at(i).lostTime=0;
+//        plan.at(i).notes="";
+//        plan.at(i).reference=0;
+//        plan.at(i).=0;
+//        plan.at(i).kanban="";
+//    }
+
+
     //we identify the top left cell
     QModelIndex topLeft = createIndex(0,0);
     //emit a signal to make the view reread identified data

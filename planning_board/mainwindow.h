@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QTableWidget>
+#include "ComboBoxDelegate.h"
 
 
 namespace Ui {
@@ -15,18 +16,16 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QAbstractTableModel*model,QWidget *parent = 0);
-//    void shiftReset();
-//    void toggleRow(int row);
+    void toggleRow(int row);
+    void toggleView();
 
     ~MainWindow();
 
 public slots:
-//    void updatePlan(QList<int> plan);
 
 
 private:
     Ui::MainWindow *ui;
-//    QTableWidget *tableWidget;
     QTableView *tableView;
 
 };
