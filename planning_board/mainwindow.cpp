@@ -9,7 +9,7 @@ MainWindow::MainWindow(QAbstractTableModel *model, QWidget *parent) :
 {
     ui->setupUi(this);
     if (QApplication::applicationDirPath().toLower().contains("build")) {
-        this->setGeometry(50,50,950,600);
+        this->setGeometry(100,30,800,700);
     } else {
         QApplication::setOverrideCursor(Qt::BlankCursor);
         this->setWindowState(Qt::WindowFullScreen);
@@ -19,39 +19,46 @@ MainWindow::MainWindow(QAbstractTableModel *model, QWidget *parent) :
     tableView = new QTableView(this);
     tableView->setModel(model);
     this->setCentralWidget(tableView);
-    this->setFont(QFont("Helvetica [Croyx]",18));
+    this->setFont(QFont("Helvetica [Croyx]",FONT_VALUE));
     tableView->show();
     QObject::connect(model,&QAbstractTableModel::dataChanged,[=](){
-        tableView->resizeColumnsToContents();
-        tableView->resizeRowsToContents();
+//                tableView->resizeColumnsToContents();
+//                tableView->resizeRowsToContents();
     });
     tableView->verticalHeader()->setSectionResizeMode (QHeaderView::Stretch);
-//    tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    tableView->horizontalHeader()->setSectionResizeMode(Planner::Columns::COL_PERIOD,QHeaderView::Stretch);
+    //tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    tableView->horizontalHeader()->setSectionResizeMode(Planner::Columns::COL_PERIOD,QHeaderView::Fixed);
     tableView->horizontalHeader()->setSectionResizeMode(Planner::Columns::COL_PLAN,QHeaderView::Fixed);
     tableView->horizontalHeader()->setSectionResizeMode(Planner::Columns::COL_ACTUAL,QHeaderView::Fixed);
     tableView->horizontalHeader()->setSectionResizeMode(Planner::Columns::COL_REFERENCE,QHeaderView::ResizeToContents);
-    tableView->horizontalHeader()->setSectionResizeMode(Planner::Columns::COL_LOSTTIME,QHeaderView::ResizeToContents);
+    tableView->horizontalHeader()->setSectionResizeMode(Planner::Columns::COL_LOSTTIME,QHeaderView::Fixed);
     tableView->horizontalHeader()->setSectionResizeMode(Planner::Columns::COL_NOTES,QHeaderView::Stretch);
     tableView->horizontalHeader()->setSectionResizeMode(Planner::Columns::COL_SCRAP,QHeaderView::Fixed);
-    //tableView->setColumnWidth(Planner::Columns::COL_PERIOD,250);
-    tableView->setColumnWidth(Planner::Columns::COL_PLAN,60);
-    tableView->setColumnWidth(Planner::Columns::COL_ACTUAL,60);
-    tableView->setColumnWidth(Planner::Columns::COL_SCRAP,60);
     tableView->horizontalHeader()->setSectionsClickable(false);
-    tableView->horizontalHeader()->setDefaultSectionSize(100);
-    //tableView->horizontalHeader()->setStretchLastSection(true);
+    tableView->horizontalHeader()->setDefaultSectionSize(DefaultSectionSize);
+    tableView->setColumnWidth(Planner::Columns::COL_PERIOD,COL_PERIOD_SIZE);
+    tableView->setColumnWidth(Planner::Columns::COL_LOSTTIME,COL_LOSTTIME_SIZE);
     tableView->setEditTriggers(QAbstractItemView::AllEditTriggers);
-    ComboBoxDelegate *comboDelegate = new ComboBoxDelegate(this);
-    tableView->setItemDelegateForColumn(Planner::Columns::COL_NOTES,comboDelegate);
-    SpinBoxDelegate *spin1Delegate = new SpinBoxDelegate(this);
-    tableView->setItemDelegateForColumn(Planner::Columns::COL_LOSTTIME,spin1Delegate);
-    SpinBoxDelegate *spin2Delegate = new SpinBoxDelegate(this);
-    tableView->setItemDelegateForColumn(Planner::Columns::COL_SCRAP,spin2Delegate);
+    tableView->setItemDelegateForColumn(Planner::Columns::COL_NOTES, new ComboBoxDelegate(tableView));
+//    tableView->setItemDelegateForColumn(Planner::Columns::COL_ACTUAL,new SpinBoxDelegate); //TBD
+    tableView->setItemDelegateForColumn(Planner::Columns::COL_LOSTTIME,new SpinBoxDelegate);
+    tableView->setItemDelegateForColumn(Planner::Columns::COL_SCRAP,new SpinBoxDelegate);
     tableView->setSelectionMode(QAbstractItemView::SingleSelection);
     tableView->setSelectionBehavior(QAbstractItemView::SelectItems);
-//    tableView->resizeColumnsToContents();
-//    tableView->resizeRowsToContents();
+    tableView->resizeColumnsToContents();
+    tableView->resizeRowsToContents();
+    tableView->setWordWrap(true);
+    tableView->setTextElideMode(Qt::ElideMiddle);
+
+    statusLabel = new QLabel(this);
+    statusProgressBar = new QProgressBar(this);
+    //statusLabel->setText("Электронная доска планирования");
+    statusLabel->setText("Выполнение плана");
+    //statusProgressBar->setTextVisible(false);
+    ui->statusBar->addPermanentWidget(statusLabel);
+    ui->statusBar->addPermanentWidget(statusProgressBar,1);
+    ui->statusBar->showMessage("Faurecia");
+    statusProgressBar->setValue(0);
 }
 
 MainWindow::~MainWindow()
@@ -61,20 +68,20 @@ MainWindow::~MainWindow()
 
 void MainWindow::toggleView()
 {
-    tableView->setColumnHidden(3,!tableView->isColumnHidden(3));
-    tableView->setColumnHidden(4,!tableView->isColumnHidden(4));
-    tableView->setColumnHidden(6,!tableView->isColumnHidden(6));
-    tableView->resizeColumnsToContents();
-    tableView->resizeRowsToContents();
+    tableView->setColumnHidden(Planner::Columns::COL_ACTUAL,!tableView->isColumnHidden(Planner::Columns::COL_ACTUAL));
+    tableView->setColumnHidden(Planner::Columns::COL_REFERENCE,!tableView->isColumnHidden(Planner::Columns::COL_REFERENCE));
+    tableView->setColumnHidden(Planner::Columns::COL_SCRAP,!tableView->isColumnHidden(Planner::Columns::COL_SCRAP));
+//    tableView->resizeColumnsToContents();
+//    tableView->resizeRowsToContents();
 }
 
 void MainWindow::setRowView(int row)
 {
-    tableView->setColumnHidden(3,!tableView->isColumnHidden(3));
-    tableView->setColumnHidden(4,!tableView->isColumnHidden(4));
-    tableView->setColumnHidden(6,!tableView->isColumnHidden(6));
-    tableView->resizeColumnsToContents();
-    tableView->resizeRowToContents(row);
+    tableView->setColumnHidden(Planner::Columns::COL_ACTUAL,!tableView->isColumnHidden(Planner::Columns::COL_ACTUAL));
+    tableView->setColumnHidden(Planner::Columns::COL_REFERENCE,!tableView->isColumnHidden(Planner::Columns::COL_REFERENCE));
+    tableView->setColumnHidden(Planner::Columns::COL_SCRAP,!tableView->isColumnHidden(Planner::Columns::COL_SCRAP));
+//    tableView->resizeColumnsToContents();
+//    tableView->resizeRowToContents(row);
 }
 
 

@@ -3,9 +3,7 @@
 
 #include <string>
 #include <vector>
-
 #include <QItemDelegate>
-
 #include <QDebug>
 
 class QModelIndex;

@@ -4,6 +4,8 @@
 #include <QWidget>
 #include <QModelIndex>
 #include <QApplication>
+#include <QTableView>
+#include <QStringList>
 #include <QString>
 
 #include <iostream>
@@ -11,14 +13,14 @@
 ComboBoxDelegate::ComboBoxDelegate(QObject *parent)
 :QItemDelegate(parent)
 {
-  Items.push_back("");
-  Items.push_back("Организационные \nпроблемы");
-  Items.push_back("Нет тары");
-  Items.push_back("Нет компонентов");
-  Items.push_back("Доработка");
-  Items.push_back("Поломка робота");
-  Items.push_back("Поломка тетра");
-  Items.push_back("Поломка другое");
+    QTableView *tableView = static_cast<QTableView*>(parent);
+    QStringList lostTimeNoteList = tableView->model()->property("lostTimeNoteList").toStringList();
+    //QStringList scrapNoteList = tableView->model()->property("scrapNoteList").toStringList(); //TBD
+
+    for(int i=0;i<lostTimeNoteList.count();++i)
+        Items.push_back(lostTimeNoteList.at(i).toStdString());
+//    for(int i=0;i<scrapNoteList.count();++i)
+//        Items.push_back(scrapNoteList.at(i).toStdString());
 
 }
 
@@ -37,7 +39,11 @@ QWidget *ComboBoxDelegate::createEditor(QWidget *parent, const QStyleOptionViewI
 void ComboBoxDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
 {
   QComboBox *comboBox = static_cast<QComboBox*>(editor);
-  int value = index.model()->data(index, Qt::EditRole).toUInt();
+  int value = index.model()->data(index, Qt::DisplayRole).toInt();
+  //QStringList lostTimeNoteList = index.model()->property("lostTimeNoteList").toStringList();
+  //qDebug()<<"value"<<value;
+  qDebug()<<index.model()->data(index, Qt::DisplayRole);
+  //<<"lostTimeNoteList.indexOf(value)"<<lostTimeNoteList.indexOf(index.model()->data(index, Qt::EditRole).toString());
   comboBox->setCurrentIndex(value);
 }
 

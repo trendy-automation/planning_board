@@ -46,6 +46,7 @@
 #include <QObject>
 #include <QSize>
 #include <QSpinBox>
+#include "planner.h"
 
 class SpinBoxDelegate : public QItemDelegate
 {

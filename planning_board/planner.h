@@ -3,6 +3,7 @@
 
 #include <QAbstractTableModel>
 #include <QMap>
+#include <QStringList>
 
 
 #include "xlsxdocument.h"
@@ -32,7 +33,7 @@ public:
         kanbanObj=kanban;
         countScrap=0;
         done=false;
-        scrapNotes="";
+        scrapNote=0;
     }
     void setDone(){
         done=true;
@@ -41,7 +42,7 @@ public:
     int taskWorkContent;
     int countScrap;
     bool done;
-    QString scrapNotes;
+    int scrapNote;
 };
 
 class hourItem
@@ -50,14 +51,14 @@ public:
     hourItem(){
         hourPlan=QList<taskItem*>();
         lostTime=0;
-        lostTimeNotes="";
+        lostTimeNote="";
     }
     void appendTask(taskItem *task){
         hourPlan.append(task);
     }
     QList<taskItem*> hourPlan;
     int lostTime;
-    QString lostTimeNotes;
+    QString lostTimeNote;
 };
 
 
@@ -101,6 +102,12 @@ private:
     QList<hourItem*> planBoard;
     QList<taskItem*> tasks;
     QMap<Columns,QString> headers;
+    QStringList lostTimeNoteList=QStringList()<<""<<"Организационные \nпроблемы"<<"Нет тары"<<"Нет компонентов"
+                                               <<"Доработка"<<"Поломка робота"<<"Поломка тетра"<<"Поломка другое";
+    QStringList scrapNoteList=QStringList()<<""<<"Царапины"<<"Прожог";
+
+
+
 
 };
 

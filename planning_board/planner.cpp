@@ -29,6 +29,12 @@ Planner::Planner(QObject *parent) : QAbstractTableModel(parent)
     });
     QTime ct = QTime::currentTime();
     hourTimer->start(ct.msecsTo(QTime(ct.hour(),59,59)));
+    //we identify the top left cell
+    QModelIndex topLeft = createIndex(0,0);
+    //emit a signal to make the view reread identified data
+    emit dataChanged(topLeft, topLeft);
+    setProperty("lostTimeNoteList",lostTimeNoteList);
+    setProperty("scrapNoteList",scrapNoteList);
 }
 
 bool Planner::readExcelData(const QString &fileName)
@@ -126,7 +132,7 @@ QVariant Planner::headerData(int section, Qt::Orientation orientation, int role)
         }
         break;
     case Qt::FontRole:
-        return QFont("Arial",16);
+        return QFont("Arial",FONT_VALUE);
         break;
     case Qt::TextAlignmentRole:
         return Qt::AlignCenter;
@@ -206,12 +212,14 @@ QVariant Planner::data(const QModelIndex &index, int role) const
         case Columns::COL_LOSTTIME:
             return planBoard.at(row)->lostTime;
         case Columns::COL_NOTES:{
-            QString notes="";
-            for(int i=0;i<planBoard.at(row)->hourPlan.count();++i)
-                notes.append(planBoard.at(row)->hourPlan.at(i)->scrapNotes).append("\n");
-            if(!planBoard.at(row)->lostTimeNotes.isEmpty())
-                notes.append(planBoard.at(row)->lostTimeNotes).append("\n");
-            return notes;
+            int note=0;
+//            for(int i=0;i<planBoard.at(row)->hourPlan.count();++i) //TBD
+//                notes.append(planBoard.at(row)->hourPlan.at(i)->scrapNote).append("\n");
+            if(!planBoard.at(row)->lostTimeNote.isEmpty())
+//                notes.append(planBoard.at(row)->lostTimeNote);
+//            if(planBoard.at(row)->lostTimeNote!=0)
+                note=lostTimeNoteList.indexOf(planBoard.at(row)->lostTimeNote);
+            return note;
         }
         case Columns::COL_SCRAP:{
             int scrap=0;
@@ -225,7 +233,7 @@ QVariant Planner::data(const QModelIndex &index, int role) const
         break;
     }
     case Qt::FontRole:
-        return QFont("Helvetica [Croyx]",18);
+        return QFont("Helvetica [Croyx]",FONT_VALUE);
         break;
     case Qt::BackgroundRole:
         //QBrush redBackground(Qt::red);
@@ -261,13 +269,16 @@ bool Planner::setData(const QModelIndex & index, const QVariant & value, int rol
             planBoard.at(index.row())->lostTime=value.toInt();
             break;
         case Columns::COL_NOTES:
-//            if(!planBoard.at(index.row())->lostTimeNotes.isEmpty() &&
+//            if(!planBoard.at(index.row())->lostTimeNote.isEmpty() &&
 //                    value.toString()=="0")
 //                return false;
-            planBoard.at(index.row())->lostTimeNotes=value.toString();
+            qDebug()<<"value"<<value<<lostTimeNoteList.at(value.toInt());
+            planBoard.at(index.row())->lostTimeNote=lostTimeNoteList.at(value.toInt());
             break;
         case Columns::COL_SCRAP:
-            planBoard.at(index.row())->hourPlan.at(0)->countScrap=value.toInt();
+            if(!planBoard.at(index.row())->hourPlan.isEmpty())
+                planBoard.at(index.row())->hourPlan.at(0)->countScrap=value.toInt();
+
             //huck
         }
         emit editCompleted( value.toString() );
@@ -277,20 +288,27 @@ bool Planner::setData(const QModelIndex & index, const QVariant & value, int rol
 
 Qt::ItemFlags Planner::flags(const QModelIndex & index) const
 {
-    if(index.column()==Columns::COL_NOTES){
-        int hourNumber;
-        QTime ct=QTime::currentTime();
-        if(ct.hour()<6)
-            hourNumber=ct.hour();
-        else if (ct.hour()<15)
-            hourNumber=ct.hour()-6;
-        else
-            hourNumber=ct.hour()-15;
-        if(index.row()<=hourNumber)
-            if(planBoard.at(index.row())->lostTimeNotes.isEmpty()||
-                    planBoard.at(index.row())->lostTimeNotes=="0")
+    int hourNumber;
+    QTime ct=QTime::currentTime();
+    if(ct.hour()<6)
+        hourNumber=ct.hour();
+    else if (ct.hour()<15)
+        hourNumber=ct.hour()-6;
+    else
+        hourNumber=ct.hour()-15;
+    if(index.row()<=hourNumber){
+        switch(index.column()){
+        case Columns::COL_ACTUAL:
+            return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
+        case Columns::COL_LOSTTIME:
+            return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
+        case Columns::COL_SCRAP:
+            return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
+        case Columns::COL_NOTES:
+//            if(planBoard.at(index.row())->lostTimeNotes.isEmpty()||
+//                    planBoard.at(index.row())->lostTimeNotes=="0")
                 return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
+        }
     }
-
     return QAbstractTableModel::flags(index) & ~Qt::ItemIsEditable;
 }

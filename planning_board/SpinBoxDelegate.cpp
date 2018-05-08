@@ -64,7 +64,7 @@ QWidget *SpinBoxDelegate::createEditor(QWidget *parent,
 {
     QSpinBox *editor = new QSpinBox(parent);
     editor->setMinimum(0);
-    editor->setMaximum(8);
+    editor->setMaximum(60);
 
     return editor;
 }
@@ -75,8 +75,14 @@ void SpinBoxDelegate::setEditorData(QWidget *editor,
                                     const QModelIndex &index) const
 {
     int value = index.model()->data(index, Qt::EditRole).toInt();
-
+    const QAbstractItemModel *model = index.model();
     QSpinBox *spinBox = static_cast<QSpinBox*>(editor);
+    if(index.column()==Planner::Columns::COL_ACTUAL)
+        spinBox->setMaximum(model->data(model->index(index.row(),Planner::Columns::COL_PLAN)).toUInt());//TBD
+    if(index.column()==Planner::Columns::COL_LOSTTIME)
+        spinBox->setMaximum(60);
+    if(index.column()==Planner::Columns::COL_SCRAP)
+        spinBox->setMaximum(model->data(model->index(index.row(),(int)Planner::Columns::COL_ACTUAL)).toUInt());
     spinBox->setValue(value);
 }
 //! [2]

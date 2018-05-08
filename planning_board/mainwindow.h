@@ -2,9 +2,12 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QTableWidget>
+#include <QTableView>
+#include <QLabel>
+#include <QProgressBar>
 #include "ComboBoxDelegate.h"
 #include "SpinBoxDelegate.h"
+
 
 
 namespace Ui {
@@ -28,6 +31,8 @@ public slots:
 private:
     Ui::MainWindow *ui;
     QTableView *tableView;
+    QLabel *statusLabel;
+    QProgressBar *statusProgressBar;
 
 };
 
