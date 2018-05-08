@@ -16,7 +16,7 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QAbstractTableModel*model,QWidget *parent = 0);
-    void toggleRow(int row);
+    void setRowView(int row);
     void toggleView();
 
     ~MainWindow();

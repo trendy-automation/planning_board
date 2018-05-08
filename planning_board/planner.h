@@ -12,44 +12,52 @@ QTXLSX_USE_NAMESPACE
 struct kanbanItem
 {
     int countParts;
-    int workContent;
+    int partWorkContent;
     QByteArray reference;
     QByteArray sebango;
     QByteArray kanban;
     kanbanItem(){
         countParts=0;
-        workContent=0;
+        partWorkContent=0;
         reference="";
         sebango="";
         kanban="";
     }
 };
 
-struct planItem
+class taskItem
 {
-    kanbanItem kanban;
-    int countScrap;
-    bool done; //fake
-    QString scrapNotes;
-
-    planItem(kanbanItem extKanban=kanbanItem()){
-        kanban=extKanban;
+public:
+    taskItem(kanbanItem kanban=kanbanItem()){
+        kanbanObj=kanban;
         countScrap=0;
         done=false;
         scrapNotes="";
     }
+    void setDone(){
+        done=true;
+    }
+    kanbanItem kanbanObj;
+    int taskWorkContent;
+    int countScrap;
+    bool done;
+    QString scrapNotes;
 };
 
-struct hourItem
+class hourItem
 {
-    QList<planItem> houtPlan;
-    int lostTime;
-    QString lostTimeNotes;
+public:
     hourItem(){
-        houtPlan=QList<planItem>();
+        hourPlan=QList<taskItem*>();
         lostTime=0;
         lostTimeNotes="";
     }
+    void appendTask(taskItem *task){
+        hourPlan.append(task);
+    }
+    QList<taskItem*> hourPlan;
+    int lostTime;
+    QString lostTimeNotes;
 };
 
 
@@ -57,6 +65,17 @@ class Planner : public QAbstractTableModel
 {
     Q_OBJECT
 public:
+    enum Columns
+    {
+        COL_PERIOD,
+        COL_PLAN,
+        COL_ACTUAL,
+        COL_REFERENCE,
+        COL_LOSTTIME,
+        COL_NOTES,
+        COL_SCRAP
+    };
+    Q_ENUM(Columns)
     explicit Planner(QObject *parent=0);
     QVariant headerData(int section, Qt::Orientation orientation, int role) const override ;
     int rowCount(const QModelIndex &parent = QModelIndex()) const override ;
@@ -70,21 +89,20 @@ public slots:
     void addKanban(const QByteArray &kanban);
 
 private:
-    void addPlan(const planItem &plan);
+    void planBoardUpdate();
 
 signals:
-//    planChanged(QList<int> plan);
     void editCompleted(const QString &);
 
-
 private slots:
-    void shiftReset();
 
 private:
 
-    QString m_gridData[9][7];  //holds text entered into QTableView
     QMap<QByteArray,kanbanItem> kanbanMap;
-    QList<hourItem> planBoard;
+    QList<hourItem*> planBoard;
+    QList<taskItem*> tasks;
+    QStringList headers=QStringList() << "Период" <<  "План" <<  "Факт"<<  "Референс"<<
+                                         "Потерянное\nвремя" <<  "Замечания" << "Брак";
 
 };
 

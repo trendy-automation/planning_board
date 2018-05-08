@@ -6,7 +6,6 @@
 #include <QTimer>
 #include <QThread>
 #include "planner.h"
-#include <QDateTime>
 
 #include <windows.h>
 #include <iostream>
@@ -17,37 +16,31 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     MessageHandler *msgHandler = new MessageHandler;
-    qRegisterMetaType<QList<QList<hourItem>>>("QList<QList<hourItem>>");
-    qRegisterMetaType<QList<planItem>>("QList<planItem>");
+    qRegisterMetaType<QList<hourItem*>>("QList<hourItem*>");
+    qRegisterMetaType<QList<taskItem*>>("QList<taskItem*>");
     Planner *planner = new Planner;
     //planner->readExcelData();
-    //qtimer update screen
     //button update work content
     //memory of plan start time for recalc on addPlan
 
     QThread *keyThread = new QThread;
     QTimer *keyTimer = new QTimer(0);
     QByteArray *buffer = new QByteArray;
-    QByteArray *buf = new QByteArray;
 
-    QObject::connect(keyTimer,&QTimer::timeout,[buf,buffer,planner](){
+    QObject::connect(keyTimer,&QTimer::timeout,[buffer,planner](){
         for (char i = 0; i < 255; i++)
         {
             int keyState = GetAsyncKeyState(i);
             if (keyState == 1 || keyState == -32767)
             {
                 if((short)i==13){
+                    planner->addKanban(*buffer);
                     buffer->clear();
-                    buffer->append(*buf);
-                    buf->clear();
-                    planner->addPlan(*buffer);
-                    qDebug()<<*buffer;
                 }
                 if((short)i>=48 && (short)i<=57)
-                    buf->operator +=(i);
+                    buffer->operator +=(i);
                 else
-                    buf->clear();
-                //qDebug() << i << " " << (short)i;
+                    buffer->clear();
                 break;
             }
         }
@@ -55,8 +48,6 @@ int main(int argc, char *argv[])
     keyTimer->moveToThread(keyThread);
     QObject::connect(keyThread, &QThread::started, keyTimer, [keyTimer](){keyTimer->start(10);});
     keyThread->start();
-//    QTimer::singleShot(0,keyTimer,[](){keyTimer->start(100);});
-
 
     QStringList args = a.arguments();
     SingleAppRun singleApp(args.contains(APP_OPTION_FORCE),&a);
@@ -65,12 +56,8 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-
     MainWindow w(planner);
     w.show();
-    //QObject::connect(planner,&Planner::planChanged,&w,&MainWindow::updatePlan);
-
-
 
     return a.exec();
 }
