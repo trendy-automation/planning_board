@@ -9,7 +9,7 @@ MainWindow::MainWindow(QAbstractTableModel *model, QWidget *parent) :
 {
     ui->setupUi(this);
     if (QApplication::applicationDirPath().toLower().contains("build")) {
-        this->setGeometry(50,50,800,600);
+        this->setGeometry(50,50,950,600);
     } else {
         QApplication::setOverrideCursor(Qt::BlankCursor);
         this->setWindowState(Qt::WindowFullScreen);
@@ -19,23 +19,39 @@ MainWindow::MainWindow(QAbstractTableModel *model, QWidget *parent) :
     tableView = new QTableView(this);
     tableView->setModel(model);
     this->setCentralWidget(tableView);
+    this->setFont(QFont("Helvetica [Croyx]",18));
     tableView->show();
     QObject::connect(model,&QAbstractTableModel::dataChanged,[=](){
         tableView->resizeColumnsToContents();
         tableView->resizeRowsToContents();
     });
-    tableView->setColumnWidth(Planner::Columns::COL_NOTES,350);
-    tableView->verticalHeader()->setSectionResizeMode ( QHeaderView::Stretch );
-    tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    tableView->horizontalHeader()->setDefaultSectionSize(100);
+    tableView->verticalHeader()->setSectionResizeMode (QHeaderView::Stretch);
+//    tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    tableView->horizontalHeader()->setSectionResizeMode(Planner::Columns::COL_PERIOD,QHeaderView::Stretch);
+    tableView->horizontalHeader()->setSectionResizeMode(Planner::Columns::COL_PLAN,QHeaderView::Fixed);
+    tableView->horizontalHeader()->setSectionResizeMode(Planner::Columns::COL_ACTUAL,QHeaderView::Fixed);
+    tableView->horizontalHeader()->setSectionResizeMode(Planner::Columns::COL_REFERENCE,QHeaderView::ResizeToContents);
+    tableView->horizontalHeader()->setSectionResizeMode(Planner::Columns::COL_LOSTTIME,QHeaderView::ResizeToContents);
+    tableView->horizontalHeader()->setSectionResizeMode(Planner::Columns::COL_NOTES,QHeaderView::Stretch);
+    tableView->horizontalHeader()->setSectionResizeMode(Planner::Columns::COL_SCRAP,QHeaderView::Fixed);
+    //tableView->setColumnWidth(Planner::Columns::COL_PERIOD,250);
+    tableView->setColumnWidth(Planner::Columns::COL_PLAN,60);
+    tableView->setColumnWidth(Planner::Columns::COL_ACTUAL,60);
+    tableView->setColumnWidth(Planner::Columns::COL_SCRAP,60);
     tableView->horizontalHeader()->setSectionsClickable(false);
+    tableView->horizontalHeader()->setDefaultSectionSize(100);
+    //tableView->horizontalHeader()->setStretchLastSection(true);
     tableView->setEditTriggers(QAbstractItemView::AllEditTriggers);
     ComboBoxDelegate *comboDelegate = new ComboBoxDelegate(this);
     tableView->setItemDelegateForColumn(Planner::Columns::COL_NOTES,comboDelegate);
+    SpinBoxDelegate *spin1Delegate = new SpinBoxDelegate(this);
+    tableView->setItemDelegateForColumn(Planner::Columns::COL_LOSTTIME,spin1Delegate);
+    SpinBoxDelegate *spin2Delegate = new SpinBoxDelegate(this);
+    tableView->setItemDelegateForColumn(Planner::Columns::COL_SCRAP,spin2Delegate);
     tableView->setSelectionMode(QAbstractItemView::SingleSelection);
     tableView->setSelectionBehavior(QAbstractItemView::SelectItems);
-    tableView->resizeColumnsToContents();
-    tableView->resizeRowsToContents();
+//    tableView->resizeColumnsToContents();
+//    tableView->resizeRowsToContents();
 }
 
 MainWindow::~MainWindow()

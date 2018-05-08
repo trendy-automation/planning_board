@@ -18,6 +18,8 @@ int main(int argc, char *argv[])
     MessageHandler *msgHandler = new MessageHandler;
     qRegisterMetaType<QList<hourItem*>>("QList<hourItem*>");
     qRegisterMetaType<QList<taskItem*>>("QList<taskItem*>");
+    qRegisterMetaType<QVector<int>>("QVector<int>");
+    qRegisterMetaType<kanbanItem>("kanbanItem");
     Planner *planner = new Planner;
     //planner->readExcelData();
     //button update work content

@@ -90,19 +90,17 @@ public slots:
 
 private:
     void planBoardUpdate();
+    int getCurrentHourNum();
 
 signals:
     void editCompleted(const QString &);
-
-private slots:
 
 private:
 
     QMap<QByteArray,kanbanItem> kanbanMap;
     QList<hourItem*> planBoard;
     QList<taskItem*> tasks;
-    QStringList headers=QStringList() << "Период" <<  "План" <<  "Факт"<<  "Референс"<<
-                                         "Потерянное\nвремя" <<  "Замечания" << "Брак";
+    QMap<Columns,QString> headers;
 
 };
 

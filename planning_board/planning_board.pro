@@ -40,11 +40,13 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
         ComboBoxDelegate.cpp \
+        SpinBoxDelegate.cpp \
         planner.cpp
 
 HEADERS += \
         mainwindow.h \
         ComboBoxDelegate.h \
+        SpinBoxDelegate.h \
         planner.h
 
 FORMS += \

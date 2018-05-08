@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QTableWidget>
 #include "ComboBoxDelegate.h"
+#include "SpinBoxDelegate.h"
 
 
 namespace Ui {

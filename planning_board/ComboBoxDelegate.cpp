@@ -12,7 +12,7 @@ ComboBoxDelegate::ComboBoxDelegate(QObject *parent)
 :QItemDelegate(parent)
 {
   Items.push_back("");
-  Items.push_back("Организационные проблемы");
+  Items.push_back("Организационные \nпроблемы");
   Items.push_back("Нет тары");
   Items.push_back("Нет компонентов");
   Items.push_back("Доработка");
