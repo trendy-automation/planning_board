@@ -46,6 +46,7 @@
 */
 
 #include <QtGui>
+#include <QLineEdit>
 
 #include "SpinBoxDelegate.h"
 
@@ -63,6 +64,8 @@ QWidget *SpinBoxDelegate::createEditor(QWidget *parent,
     const QModelIndex &/* index */) const
 {
     QSpinBox *editor = new QSpinBox(parent);
+    editor->findChild<QLineEdit*>()->setReadOnly(true);
+//    editor->installEventFilter(parent);
     editor->setMinimum(0);
     editor->setMaximum(60);
 
@@ -106,3 +109,13 @@ void SpinBoxDelegate::updateEditorGeometry(QWidget *editor,
     editor->setGeometry(option.rect);
 }
 //! [4]
+//!
+//    bool SpinBoxDelegate::eventFilter(QObject *o, QEvent *e)
+//{
+//    if (e->type() == QEvent::KeyPress) {
+//        e->ignore();
+//        return true;
+//    }
+//    return SpinBoxDelegate::eventFilter(o, e);
+//}
+

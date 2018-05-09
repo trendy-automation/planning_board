@@ -85,6 +85,8 @@ public:
     bool readExcelData(const QString &fileName="work_content.xlsx");
     bool setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole) override;
     Qt::ItemFlags flags(const QModelIndex & index) const override ;
+    int getProgress();
+    virtual void keyboardSearch(const QString& search) {}
 
 public slots:
     void addKanban(const QByteArray &kanban);
@@ -103,7 +105,7 @@ private:
 
     QMap<QByteArray,kanbanItem> kanbanMap;
     QList<hourItem*> planBoard;
-    QMap<int,taskItem*> tasks;
+    //QMap<int,taskItem*> tasks;
     QList<taskItem*> notAttachedTasks;
     QMap<Columns,QString> headers;
     QStringList lostTimeNoteList=QStringList()<<""<<"Организационные \nпроблемы"<<"Нет тары"<<"Нет компонентов"

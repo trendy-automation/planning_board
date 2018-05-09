@@ -64,6 +64,8 @@ public:
 
     void updateEditorGeometry(QWidget *editor,
         const QStyleOptionViewItem &option, const QModelIndex &index) const;
+//private:
+//    bool eventFilter(QObject *o, QEvent *e);
 };
 
 #endif

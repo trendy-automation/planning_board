@@ -18,23 +18,30 @@ Planner::Planner(QObject *parent) : QAbstractTableModel(parent)
     QTimer *hourTimer = new QTimer(this);
     QObject::connect(hourTimer,&QTimer::timeout,[hourTimer,this](){
         QTime ct = QTime::currentTime();
-        hourTimer->start(qMax(3600000-2000,ct.msecsTo(QTime(ct.hour(),59,59))+1000));
-        //auto done task huck
+        hourTimer->start(qMax(3600000-2000,ct.msecsTo(QTime(ct.hour(),59,59))+2000));
         int hourNumber = getCurrentHourNum();
-        if(hourNumber==0)
-            hourNumber=planBoard.count();
-        for(int i=0;i<planBoard.at(hourNumber)->hourPlan.count();++i)
-            planBoard.at(hourNumber)->hourPlan.at(i)->setDone();
+        if(hourNumber!=0 && (ct.hour()==0||ct.hour()==6||ct.hour()==15))
+            qDebug()<<"Timer Error!!!!!!!!!!! Warning!!!"<<"hourNumber"<<hourNumber<<"ct.hour()"<<ct.hour();
+        qDebug()<<1<<planBoard.count()<<"hourNumber"<<hourNumber;
+        //auto done task huck
+        int doneHour=hourNumber==0?(planBoard.count()-1):(hourNumber-1);
+        qDebug()<<"hourNumber"<<hourNumber<<"doneHour"<<doneHour;
+        for(int i=0;i<planBoard.at(doneHour)->hourPlan.count();++i){
+            qDebug()<<1;
+            planBoard.at(doneHour)->hourPlan.at(i)->setDone();
+        }
+        qDebug()<<"hourNumber"<<hourNumber;
         if(hourNumber==0){
             //save excel report
             saveExcelReport(QDate().currentDate().toString(
-                            QString("PlanningReport_yyyy_MMMM_dd_%1.xlsx").arg(ct.hour())));
+                            QString("ProductionReport_yyyy_MMMM_dd_%1.xlsx").arg(ct.hour())));
             planBoard.clear();
         }
+        qDebug()<<1;
         this->planBoardUpdate();
     });
     QTime ct = QTime::currentTime();
-    hourTimer->start(ct.msecsTo(QTime(ct.hour(),59,59)));
+    hourTimer->start(ct.msecsTo(QTime(ct.hour(),59,59))+2000);
     //we identify the top left cell
     QModelIndex topLeft = createIndex(0,0);
     //emit a signal to make the view reread identified data
@@ -182,12 +189,12 @@ QVariant Planner::headerData(int section, Qt::Orientation orientation, int role)
 int Planner::rowCount(const QModelIndex & /*parent*/) const
 {
     //return (QTime::currentTime().hour()<6)?6:9;
-    return planBoard.size();
+    return planBoard.count();
 }
 
 int Planner::columnCount(const QModelIndex & /*parent*/) const
 {
-    return headers.size();
+    return headers.count();
 }
 
 QVariant Planner::data(const QModelIndex &index, int role) const
@@ -326,11 +333,33 @@ Qt::ItemFlags Planner::flags(const QModelIndex & index) const
 
 bool Planner::saveExcelReport(const QString &fileName)
 {
+    qDebug()<<"saveExcelReport"<<"fileName";
     Document *xlsx= new Document(fileName);
     for(int j=0;j<headers.count();j++)
         xlsx->write(1,j+1,headers.value(headers.keys().at(j)));
     for(int j=0;j<headers.count();j++)
         for(int i=0;i<planBoard.count();i++)
-            xlsx->write(i+2,j+1,data(index(i,j)));
+            if(j==Columns::COL_NOTES)
+                xlsx->write(i+2,j+1,lostTimeNoteList.at(data(index(i,j)).toInt()));
+            else
+                xlsx->write(i+2,j+1,data(index(i,j)));
     return xlsx->saveAs(fileName);
 }
+
+int Planner::getProgress()
+{
+    int workContent=0;
+    int doneContent=0;
+    for(int i=0;i<planBoard.count();i++)
+        for(int j=0;j<planBoard.at(i)->hourPlan.count();j++){
+            workContent+=planBoard.at(i)->hourPlan.at(j)->taskWorkContent;
+            if(planBoard.at(i)->hourPlan.at(j)->done)
+                doneContent+=planBoard.at(i)->hourPlan.at(j)->taskWorkContent;
+//            qDebug()<<doneContent<<workContent;
+        }
+//    qDebug()<<doneContent<<workContent;
+    if(workContent==0)
+        return 0;
+    return doneContent*100/workContent;
+}
+
