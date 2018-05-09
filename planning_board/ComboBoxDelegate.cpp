@@ -40,10 +40,6 @@ void ComboBoxDelegate::setEditorData(QWidget *editor, const QModelIndex &index) 
 {
   QComboBox *comboBox = static_cast<QComboBox*>(editor);
   int value = index.model()->data(index, Qt::DisplayRole).toInt();
-  //QStringList lostTimeNoteList = index.model()->property("lostTimeNoteList").toStringList();
-  //qDebug()<<"value"<<value;
-  qDebug()<<index.model()->data(index, Qt::DisplayRole);
-  //<<"lostTimeNoteList.indexOf(value)"<<lostTimeNoteList.indexOf(index.model()->data(index, Qt::EditRole).toString());
   comboBox->setCurrentIndex(value);
 }
 

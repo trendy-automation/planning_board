@@ -1,4 +1,5 @@
 #include "planner.h"
+#include <QDate>
 #include <QTime>
 #include <QTimer>
 #include <QDebug>
@@ -20,11 +21,16 @@ Planner::Planner(QObject *parent) : QAbstractTableModel(parent)
         hourTimer->start(qMax(3600000-2000,ct.msecsTo(QTime(ct.hour(),59,59))+1000));
         //auto done task huck
         int hourNumber = getCurrentHourNum();
+        if(hourNumber==0)
+            hourNumber=planBoard.count();
         for(int i=0;i<planBoard.at(hourNumber)->hourPlan.count();++i)
             planBoard.at(hourNumber)->hourPlan.at(i)->setDone();
-        //save excel report
-        if(ct.hour()==0||ct.hour()==6||ct.hour()==15)
+        if(hourNumber==0){
+            //save excel report
+            saveExcelReport(QDate().currentDate().toString(
+                            QString("PlanningReport_yyyy_MMMM_dd_%1.xlsx").arg(ct.hour())));
             planBoard.clear();
+        }
         this->planBoardUpdate();
     });
     QTime ct = QTime::currentTime();
@@ -68,7 +74,7 @@ void Planner::addKanban(const QByteArray &kanban)
     if(kanbanMap.contains(kanban)){
         taskItem *task = new taskItem(kanbanMap.value(kanban));
         task->taskWorkContent=task->kanbanObj.countParts*task->kanbanObj.partWorkContent;
-        tasks.append(task);
+        notAttachedTasks.append(task);
         this->planBoardUpdate();
     }
 }
@@ -89,16 +95,26 @@ void Planner::planBoardUpdate()
             qDebug()<<"!planBoard.at(i)";
             planBoard.insert(i,new hourItem());
         }
-    for(int hour=hourNumber;hour<planBoard.count();++hour){
+    int hour=hourNumber;
+    //qDebug()<<"hour"<<hour<<"hourValue1"<<hourValue;
+    while(hour<planBoard.count() && notAttachedTasks.count()>0){
         for(int i=0;i<planBoard.at(hour)->hourPlan.count();++i)
             if(!planBoard.at(hour)->hourPlan.at(i)->done)
-                hourValue=-planBoard.at(hour)->hourPlan.at(i)->taskWorkContent;
-        for(int i=0;i<tasks.count();++i){
-            if(tasks.at(i)->taskWorkContent<hourValue){
-                hourValue=-tasks.at(i)->taskWorkContent;
-                planBoard.at(hour)->appendTask(tasks.takeAt(i));
+                hourValue-=planBoard.at(hour)->hourPlan.at(i)->taskWorkContent;
+        //qDebug()<<"hour"<<hour<<"hourValue2"<<hourValue;
+        for(int i=0;i<notAttachedTasks.count();++i){
+            if(notAttachedTasks.at(0)->taskWorkContent<hourValue){
+                //qDebug()<<"hour"<<hour<<"hourValue3"<<hourValue<<"tasks.count()"<<tasks.count();
+                hourValue-=notAttachedTasks.at(0)->taskWorkContent;
+                //qDebug()<<"hour"<<hour<<"hourValue4"<<hourValue<<"tasks.at(0)->taskWorkContent"<<tasks.at(0)->taskWorkContent;
+                planBoard.at(hour)->appendTask(notAttachedTasks.takeAt(0));
+                // // // //if(planBoard.at(hour)->hourPlan.count()>1){
+                    //insertRow(hour);
+                    //emit modelSpanned(int,int,int,int);
+                //}
             }
         }
+        hour++;
         hourValue=3600;
     }
 
@@ -106,6 +122,8 @@ void Planner::planBoardUpdate()
     QModelIndex topLeft = createIndex(0,0);
     //emit a signal to make the view reread identified data
     emit dataChanged(topLeft, topLeft);
+//    emit dataChanged(topLeft, topLeft);
+//    emit dataChanged(topLeft, topLeft);
 }
 
 int Planner::getCurrentHourNum()
@@ -192,15 +210,15 @@ QVariant Planner::data(const QModelIndex &index, int role) const
         case Columns::COL_PLAN:{
             int plan=0;
             for(int i=0;i<planBoard.at(row)->hourPlan.count();++i)
-                if(!planBoard.at(row)->hourPlan.at(i)->done)
-                    plan=+planBoard.at(row)->hourPlan.at(i)->kanbanObj.countParts;
+                //if(!planBoard.at(row)->hourPlan.at(i)->done)
+                    plan+=planBoard.at(row)->hourPlan.at(i)->kanbanObj.countParts;
             return plan;
         }
         case Columns::COL_ACTUAL:{
             int act=0;
             for(int i=0;i<planBoard.at(row)->hourPlan.count();++i)
                 if(planBoard.at(row)->hourPlan.at(i)->done)
-                    act=+planBoard.at(row)->hourPlan.at(i)->kanbanObj.countParts;
+                    act+=planBoard.at(row)->hourPlan.at(i)->kanbanObj.countParts;
             return act;
         }
         case Columns::COL_REFERENCE:{
@@ -213,18 +231,14 @@ QVariant Planner::data(const QModelIndex &index, int role) const
             return planBoard.at(row)->lostTime;
         case Columns::COL_NOTES:{
             int note=0;
-//            for(int i=0;i<planBoard.at(row)->hourPlan.count();++i) //TBD
-//                notes.append(planBoard.at(row)->hourPlan.at(i)->scrapNote).append("\n");
             if(!planBoard.at(row)->lostTimeNote.isEmpty())
-//                notes.append(planBoard.at(row)->lostTimeNote);
-//            if(planBoard.at(row)->lostTimeNote!=0)
                 note=lostTimeNoteList.indexOf(planBoard.at(row)->lostTimeNote);
             return note;
         }
         case Columns::COL_SCRAP:{
             int scrap=0;
             for(int i=0;i<planBoard.at(row)->hourPlan.count();++i)
-                scrap=+planBoard.at(row)->hourPlan.at(i)->countScrap;
+                scrap+=planBoard.at(row)->hourPlan.at(i)->countScrap;
             return scrap;
         }
         default:
@@ -269,10 +283,6 @@ bool Planner::setData(const QModelIndex & index, const QVariant & value, int rol
             planBoard.at(index.row())->lostTime=value.toInt();
             break;
         case Columns::COL_NOTES:
-//            if(!planBoard.at(index.row())->lostTimeNote.isEmpty() &&
-//                    value.toString()=="0")
-//                return false;
-            qDebug()<<"value"<<value<<lostTimeNoteList.at(value.toInt());
             planBoard.at(index.row())->lostTimeNote=lostTimeNoteList.at(value.toInt());
             break;
         case Columns::COL_SCRAP:
@@ -298,8 +308,8 @@ Qt::ItemFlags Planner::flags(const QModelIndex & index) const
         hourNumber=ct.hour()-15;
     if(index.row()<=hourNumber){
         switch(index.column()){
-        case Columns::COL_ACTUAL:
-            return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
+//        case Columns::COL_ACTUAL:
+//            return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
         case Columns::COL_LOSTTIME:
             return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
         case Columns::COL_SCRAP:
@@ -311,4 +321,16 @@ Qt::ItemFlags Planner::flags(const QModelIndex & index) const
         }
     }
     return QAbstractTableModel::flags(index) & ~Qt::ItemIsEditable;
+}
+
+
+bool Planner::saveExcelReport(const QString &fileName)
+{
+    Document *xlsx= new Document(fileName);
+    for(int j=0;j<headers.count();j++)
+        xlsx->write(1,j+1,headers.value(headers.keys().at(j)));
+    for(int j=0;j<headers.count();j++)
+        for(int i=0;i<planBoard.count();i++)
+            xlsx->write(i+2,j+1,data(index(i,j)));
+    return xlsx->saveAs(fileName);
 }

@@ -25,7 +25,9 @@ MainWindow::MainWindow(QAbstractTableModel *model, QWidget *parent) :
 //                tableView->resizeColumnsToContents();
 //                tableView->resizeRowsToContents();
     });
-    tableView->verticalHeader()->setSectionResizeMode (QHeaderView::Stretch);
+    Planner *planner = static_cast<Planner*>(model);
+    QObject::connect(planner,&Planner::modelSpanned,tableView,&QTableView::setSpan);
+    tableView->verticalHeader()->setSectionResizeMode (QHeaderView::ResizeToContents);
     //tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     tableView->horizontalHeader()->setSectionResizeMode(Planner::Columns::COL_PERIOD,QHeaderView::Fixed);
     tableView->horizontalHeader()->setSectionResizeMode(Planner::Columns::COL_PLAN,QHeaderView::Fixed);
@@ -45,8 +47,8 @@ MainWindow::MainWindow(QAbstractTableModel *model, QWidget *parent) :
     tableView->setItemDelegateForColumn(Planner::Columns::COL_SCRAP,new SpinBoxDelegate);
     tableView->setSelectionMode(QAbstractItemView::SingleSelection);
     tableView->setSelectionBehavior(QAbstractItemView::SelectItems);
-    tableView->resizeColumnsToContents();
-    tableView->resizeRowsToContents();
+    //tableView->resizeColumnsToContents();
+    //tableView->resizeRowsToContents();
     tableView->setWordWrap(true);
     tableView->setTextElideMode(Qt::ElideMiddle);
 

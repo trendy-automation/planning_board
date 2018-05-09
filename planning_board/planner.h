@@ -92,15 +92,19 @@ public slots:
 private:
     void planBoardUpdate();
     int getCurrentHourNum();
+    bool saveExcelReport(const QString &fileName);
+
 
 signals:
     void editCompleted(const QString &);
+    void modelSpanned(int,int,int,int);
 
 private:
 
     QMap<QByteArray,kanbanItem> kanbanMap;
     QList<hourItem*> planBoard;
-    QList<taskItem*> tasks;
+    QMap<int,taskItem*> tasks;
+    QList<taskItem*> notAttachedTasks;
     QMap<Columns,QString> headers;
     QStringList lostTimeNoteList=QStringList()<<""<<"Организационные \nпроблемы"<<"Нет тары"<<"Нет компонентов"
                                                <<"Доработка"<<"Поломка робота"<<"Поломка тетра"<<"Поломка другое";

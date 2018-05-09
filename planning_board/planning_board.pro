@@ -8,7 +8,7 @@ include(../../../shared_classes/message_handler/message_handler.pri)
 include(../../../shared_classes/single_apprun/single_apprun.pri)
 include(../../../shared_classes/qtxlsx/qtxlsx.pri)
 
-DEFINES += DEBUG_NAME=\\\"planning_board\\\"
+DEFINES += DEBUG_NAME=\\\"planning\\\"
 DEFINES += APP_NAME='\\"PLANNING_BOARD\\"'
 DEFINES += BUILD_PATH='\"$${OUT_PWD}\"'
 DEFINES += APP_OPTION_WATHCDOG='\\"watchdog\\"'
