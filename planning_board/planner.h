@@ -82,7 +82,7 @@ public:
     int rowCount(const QModelIndex &parent = QModelIndex()) const override ;
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-    bool readExcelData(const QString &fileName="work_content.xlsx");
+    bool readExcelData(const QString &fileName="planning_data.xlsx");
     bool setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole) override;
     Qt::ItemFlags flags(const QModelIndex & index) const override ;
     int getProgress();
@@ -108,9 +108,9 @@ private:
     //QMap<int,taskItem*> tasks;
     QList<taskItem*> notAttachedTasks;
     QMap<Columns,QString> headers;
-    QStringList lostTimeNoteList=QStringList()<<""<<"Организационные \nпроблемы"<<"Нет тары"<<"Нет компонентов"
-                                               <<"Доработка"<<"Поломка робота"<<"Поломка тетра"<<"Поломка другое";
-    QStringList scrapNoteList=QStringList()<<""<<"Царапины"<<"Прожог";
+    QStringList lostTimeNoteList;//=QStringList()<<""<<"Организационные \nпроблемы"<<"Нет тары"<<"Нет компонентов"
+                                 //              <<"Доработка"<<"Поломка робота"<<"Поломка тетра"<<"Поломка другое";
+    QStringList scrapNoteList;//=QStringList()<<""<<"Царапины"<<"Прожог";
 
 
 

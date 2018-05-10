@@ -22,22 +22,19 @@ Planner::Planner(QObject *parent) : QAbstractTableModel(parent)
         int hourNumber = getCurrentHourNum();
         if(hourNumber!=0 && (ct.hour()==0||ct.hour()==6||ct.hour()==15))
             qDebug()<<"Timer Error!!!!!!!!!!! Warning!!!"<<"hourNumber"<<hourNumber<<"ct.hour()"<<ct.hour();
-        qDebug()<<1<<planBoard.count()<<"hourNumber"<<hourNumber;
+        //qDebug()<<1<<planBoard.count()<<"hourNumber"<<hourNumber;
         //auto done task huck
         int doneHour=hourNumber==0?(planBoard.count()-1):(hourNumber-1);
-        qDebug()<<"hourNumber"<<hourNumber<<"doneHour"<<doneHour;
-        for(int i=0;i<planBoard.at(doneHour)->hourPlan.count();++i){
-            qDebug()<<1;
+        //qDebug()<<"hourNumber"<<hourNumber<<"doneHour"<<doneHour;
+        for(int i=0;i<planBoard.at(doneHour)->hourPlan.count();++i)
             planBoard.at(doneHour)->hourPlan.at(i)->setDone();
-        }
-        qDebug()<<"hourNumber"<<hourNumber;
+        //qDebug()<<"hourNumber"<<hourNumber;
         if(hourNumber==0){
             //save excel report
             saveExcelReport(QDate().currentDate().toString(
-                            QString("ProductionReport_yyyy_MMMM_dd_%1.xlsx").arg(ct.hour())));
+                                QString("ProductionReport_yyyy_MMMM_dd_%1.xlsx").arg(ct.hour())));
             planBoard.clear();
         }
-        qDebug()<<1;
         this->planBoardUpdate();
     });
     QTime ct = QTime::currentTime();
@@ -54,15 +51,17 @@ bool Planner::readExcelData(const QString &fileName)
 {
     kanbanMap.clear();
     Document *xlsx= new Document(fileName);
-    xlsx->saveAs(fileName);
+    //xlsx->saveAs(fileName);
+    bool ok=xlsx->selectSheet("Parts");
     int i=2;
-    QByteArray kanban = xlsx->read(i,1).toByteArray();
-    while (!kanban.isEmpty()){
+    QByteArray kanban;
+    if(ok)
         kanban = xlsx->read(i,1).toByteArray();
+    while (ok && !kanban.isEmpty()){
         int partWorkContent = xlsx->read(i,2).toInt();
         if(partWorkContent<3600){
             kanbanItem kanbanObj;
-            kanbanObj.kanban=xlsx->read(i,1).toByteArray();
+            kanbanObj.kanban=kanban;
             kanbanObj.partWorkContent=partWorkContent;
             kanbanObj.countParts=xlsx->read(i,3).toInt();
             kanbanObj.reference=xlsx->read(i,4).toByteArray();
@@ -72,8 +71,20 @@ bool Planner::readExcelData(const QString &fileName)
             //                    <<kanbanObj.countParts<<kanbanObj.reference<<kanbanObj.sebango;
         }
         i++;
+        kanban = xlsx->read(i,1).toByteArray();
     }
-    return true;
+    ok&=xlsx->selectSheet("Notes");
+    i=2;
+    QByteArray note;
+    if(ok)
+        note = xlsx->read(i,1).toByteArray();
+    lostTimeNoteList.append("");
+    while (ok && !note.isEmpty()){
+        lostTimeNoteList.append(note);
+        i++;
+        note = xlsx->read(i,1).toByteArray();
+    }
+    return ok;
 }
 
 void Planner::addKanban(const QByteArray &kanban)
@@ -83,6 +94,11 @@ void Planner::addKanban(const QByteArray &kanban)
         task->taskWorkContent=task->kanbanObj.countParts*task->kanbanObj.partWorkContent;
         notAttachedTasks.append(task);
         this->planBoardUpdate();
+        return;
+    }
+    if(kanban=="34703470"){
+        qDebug()<<"refresh";
+        readExcelData();
     }
 }
 
@@ -116,8 +132,8 @@ void Planner::planBoardUpdate()
                 //qDebug()<<"hour"<<hour<<"hourValue4"<<hourValue<<"tasks.at(0)->taskWorkContent"<<tasks.at(0)->taskWorkContent;
                 planBoard.at(hour)->appendTask(notAttachedTasks.takeAt(0));
                 // // // //if(planBoard.at(hour)->hourPlan.count()>1){
-                    //insertRow(hour);
-                    //emit modelSpanned(int,int,int,int);
+                //insertRow(hour);
+                //emit modelSpanned(int,int,int,int);
                 //}
             }
         }
@@ -127,10 +143,9 @@ void Planner::planBoardUpdate()
 
     //we identify the top left cell
     QModelIndex topLeft = createIndex(0,0);
+    QModelIndex bottomRight = createIndex(rowCount(),columnCount());
     //emit a signal to make the view reread identified data
-    emit dataChanged(topLeft, topLeft);
-//    emit dataChanged(topLeft, topLeft);
-//    emit dataChanged(topLeft, topLeft);
+    emit dataChanged(topLeft, bottomRight);
 }
 
 int Planner::getCurrentHourNum()
@@ -164,22 +179,22 @@ QVariant Planner::headerData(int section, Qt::Orientation orientation, int role)
         break;
     case Qt::SizeHintRole:
         if (orientation == Qt::Horizontal) {
-//                        switch(section){
-//                        case Columns::COL_PERIOD:
-//                            return QSize(250,70);
-//                        case Columns::COL_PLAN:
-//                            return QSize(50,70);
-//                        case Columns::COL_ACTUAL:
-//                            return QSize(50,70);
-//                        case Columns::COL_REFERENCE:
-//                            return QSize(150,70);
-//                        case Columns::COL_LOSTTIME:
-//                            return QSize(50,70);
-//                        case Columns::COL_NOTES:
-//                            return QSize(300,70);
-//                        case Columns::COL_SCRAP:
-//                            return QSize(50,70);
-//                        }
+            //                        switch(section){
+            //                        case Columns::COL_PERIOD:
+            //                            return QSize(250,70);
+            //                        case Columns::COL_PLAN:
+            //                            return QSize(50,70);
+            //                        case Columns::COL_ACTUAL:
+            //                            return QSize(50,70);
+            //                        case Columns::COL_REFERENCE:
+            //                            return QSize(150,70);
+            //                        case Columns::COL_LOSTTIME:
+            //                            return QSize(50,70);
+            //                        case Columns::COL_NOTES:
+            //                            return QSize(300,70);
+            //                        case Columns::COL_SCRAP:
+            //                            return QSize(50,70);
+            //                        }
         }
         break;
     }
@@ -218,7 +233,7 @@ QVariant Planner::data(const QModelIndex &index, int role) const
             int plan=0;
             for(int i=0;i<planBoard.at(row)->hourPlan.count();++i)
                 //if(!planBoard.at(row)->hourPlan.at(i)->done)
-                    plan+=planBoard.at(row)->hourPlan.at(i)->kanbanObj.countParts;
+                plan+=planBoard.at(row)->hourPlan.at(i)->kanbanObj.countParts;
             return plan;
         }
         case Columns::COL_ACTUAL:{
@@ -229,18 +244,31 @@ QVariant Planner::data(const QModelIndex &index, int role) const
             return act;
         }
         case Columns::COL_REFERENCE:{
-            QString ref="";
+            QString ref;
+            QMap<QByteArray,int> references;
             for(int i=0;i<planBoard.at(row)->hourPlan.count();++i)
-                ref.append(planBoard.at(row)->hourPlan.at(i)->kanbanObj.reference).append("\n");
+                if(references.contains(planBoard.at(row)->hourPlan.at(i)->kanbanObj.reference))
+                    references.insert(planBoard.at(row)->hourPlan.at(i)->kanbanObj.reference,
+                                       references.value(planBoard.at(row)->hourPlan.at(i)->kanbanObj.reference)+
+                                        planBoard.at(row)->hourPlan.at(i)->kanbanObj.countParts);
+                else
+                    references.insert(planBoard.at(row)->hourPlan.at(i)->kanbanObj.reference,
+                                       planBoard.at(row)->hourPlan.at(i)->kanbanObj.countParts);
+            for(int i=0;i<references.count();++i)
+                if(references.value(references.keys().at(i))>1)
+                    ref.append(references.keys().at(i)).append(" x ")
+                            .append(QString::number(references.value(references.keys().at(i)))).append("\n");
+                else
+                    ref.append(references.keys().at(i)).append("\n");
             return ref;
         }
         case Columns::COL_LOSTTIME:
             return planBoard.at(row)->lostTime;
         case Columns::COL_NOTES:{
-            int note=0;
+            QString noteStr;
             if(!planBoard.at(row)->lostTimeNote.isEmpty())
-                note=lostTimeNoteList.indexOf(planBoard.at(row)->lostTimeNote);
-            return note;
+                noteStr=planBoard.at(row)->lostTimeNote;
+            return noteStr;
         }
         case Columns::COL_SCRAP:{
             int scrap=0;
@@ -266,6 +294,29 @@ QVariant Planner::data(const QModelIndex &index, int role) const
     case Qt::CheckStateRole:
         //return Qt::Checked;
         break;
+    case Qt::EditRole:{
+        switch(col){
+        case Columns::COL_PERIOD:
+            return data(this->index(row,col),Qt::DisplayRole);
+        case Columns::COL_PLAN:
+            return data(this->index(row,col),Qt::DisplayRole);
+        case Columns::COL_ACTUAL:
+            return data(this->index(row,col),Qt::DisplayRole);
+        case Columns::COL_REFERENCE:
+            return data(this->index(row,col),Qt::DisplayRole);
+        case Columns::COL_LOSTTIME:
+            return data(this->index(row,col),Qt::DisplayRole);
+        case Columns::COL_NOTES:{
+            int note=0;
+            if(!planBoard.at(row)->lostTimeNote.isEmpty())
+                note=lostTimeNoteList.indexOf(planBoard.at(row)->lostTimeNote);
+            return note;
+        }
+        case Columns::COL_SCRAP:
+            return data(this->index(row,col),Qt::DisplayRole);
+            break;
+        }
+    }
     }
     return QVariant();
 }
@@ -315,16 +366,16 @@ Qt::ItemFlags Planner::flags(const QModelIndex & index) const
         hourNumber=ct.hour()-15;
     if(index.row()<=hourNumber){
         switch(index.column()){
-//        case Columns::COL_ACTUAL:
-//            return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
+        //        case Columns::COL_ACTUAL:
+        //            return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
         case Columns::COL_LOSTTIME:
             return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
         case Columns::COL_SCRAP:
             return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
         case Columns::COL_NOTES:
-//            if(planBoard.at(index.row())->lostTimeNotes.isEmpty()||
-//                    planBoard.at(index.row())->lostTimeNotes=="0")
-                return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
+            //            if(planBoard.at(index.row())->lostTimeNotes.isEmpty()||
+            //                    planBoard.at(index.row())->lostTimeNotes=="0")
+            return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
         }
     }
     return QAbstractTableModel::flags(index) & ~Qt::ItemIsEditable;
@@ -355,9 +406,9 @@ int Planner::getProgress()
             workContent+=planBoard.at(i)->hourPlan.at(j)->taskWorkContent;
             if(planBoard.at(i)->hourPlan.at(j)->done)
                 doneContent+=planBoard.at(i)->hourPlan.at(j)->taskWorkContent;
-//            qDebug()<<doneContent<<workContent;
+            //            qDebug()<<doneContent<<workContent;
         }
-//    qDebug()<<doneContent<<workContent;
+    //    qDebug()<<doneContent<<workContent;
     if(workContent==0)
         return 0;
     return doneContent*100/workContent;

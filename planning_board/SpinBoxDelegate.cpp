@@ -77,7 +77,7 @@ QWidget *SpinBoxDelegate::createEditor(QWidget *parent,
 void SpinBoxDelegate::setEditorData(QWidget *editor,
                                     const QModelIndex &index) const
 {
-    int value = index.model()->data(index, Qt::DisplayRole).toInt();
+    int value = index.model()->data(index, Qt::EditRole).toInt();
     const QAbstractItemModel *model = index.model();
     QSpinBox *spinBox = static_cast<QSpinBox*>(editor);
     if(index.column()==Planner::Columns::COL_ACTUAL)
