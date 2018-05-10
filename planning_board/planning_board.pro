@@ -6,7 +6,24 @@
 
 include(../../../shared_classes/message_handler/message_handler.pri)
 include(../../../shared_classes/single_apprun/single_apprun.pri)
-include(../../../shared_classes/qtxlsx/qtxlsx.pri)
+#include(../../../shared_classes/qtxlsx/qtxlsx.pri)
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../../shared_classes/qtxlsx/build-qtxlsx-Release/release/ -lQtXlsx
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../../shared_classes/qtxlsx/build-qtxlsx-Release/debug/ -lQtXlsx
+else:unix: LIBS += -L$$OUT_PWD/../../shared_classes/qtxlsx/build-qtxlsx-Release/ -lQtXlsx
+
+INCLUDEPATH += $$PWD/../../../shared_classes/qtxlsx
+DEPENDPATH += $$PWD/../../../shared_classes/qtxlsx
+
+CONFIG(release, debug|release){BUILD_TYPE=release}
+CONFIG(debug, debug|release){BUILD_TYPE=debug}
+
+copydata.commands = $(COPY_FILE) \"$$shell_path($$clean_path($$OUT_PWD/../../shared_classes/qtxlsx/build-qtxlsx-Release/$$BUILD_TYPE/QtXlsx.dll))\" \"$$shell_path($$OUT_PWD/$$BUILD_TYPE)\"
+first.depends = $(first) copydata
+export(first.depends)
+export(copydata.commands)
+QMAKE_EXTRA_TARGETS += first copydata
+
 
 DEFINES += DEBUG_NAME=\\\"planning\\\"
 DEFINES += APP_NAME='\\"PLANNING_BOARD\\"'
