@@ -72,3 +72,6 @@ HEADERS += \
 
 FORMS += \
         mainwindow.ui
+
+DISTFILES += \
+    ../git_setup.txt

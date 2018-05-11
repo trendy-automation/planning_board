@@ -1,0 +1,25 @@
+git config --global user.email "ilya-kolesnic@yandex.ru"
+git config --global user.name "trendy-automation"
+
+
+
+mkdir ~/.ssh
+cd ~/.ssh
+ssh-keygen -t rsa -C "ilya-kolesnic@yandex.ru"
+
+id_rsa
+qwert
+qwert
+
+clip < ~/.ssh/id_rsa.pub
+
+eval $(ssh-agent -s)
+ssh-add ~/.ssh/id_rsa
+
+cd /F/Qt_projects/planning_board/source
+git init
+git add * 
+git commit -m "First commit"
+git remote add origin https://github.com/trendy-automation/planning_board.git
+#git push --set-upstream origin master
+git push -u origin master
