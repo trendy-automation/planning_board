@@ -32,7 +32,7 @@ Planner::Planner(QObject *parent) : QAbstractTableModel(parent)
         if(hourNumber==0){
             //save excel report
             saveExcelReport(QDate().currentDate().toString(
-                                QString("ProductionReport_yyyy_MMMM_dd_%1.xlsx").arg(ct.hour())));
+                                QString("BoardReport_yyyy_MMMM_dd_%1.xlsx").arg(ct.hour())));
             planBoard.clear();
         }
         this->planBoardUpdate();
