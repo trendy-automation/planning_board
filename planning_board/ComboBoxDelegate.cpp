@@ -57,8 +57,7 @@ void ComboBoxDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionV
 void ComboBoxDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
   QStyleOptionViewItemV4 myOption = option;
-
-  myOption.text = Items[index.data().toInt()].c_str();
-
+  //myOption.text = Items[index.data().toInt()].c_str();
+  myOption.text = index.data().toString();
   QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &myOption, painter);
 }

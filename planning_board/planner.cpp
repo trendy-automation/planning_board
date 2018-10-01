@@ -287,13 +287,23 @@ QVariant Planner::data(const QModelIndex &index, int role) const
     case Qt::BackgroundRole:
         //QBrush redBackground(Qt::red);
         //return redBackground;
+        return QVariant();
         break;
     case Qt::TextAlignmentRole:
         return Qt::AlignCenter;
         break;
     case Qt::CheckStateRole:
         //return Qt::Checked;
+        return QVariant();
         break;
+    case Qt::ForegroundRole:{
+        return QVariant();
+        break;
+    }
+    case Qt::ToolTipRole:{
+        return QVariant();
+        break;
+    }
     case Qt::EditRole:{
         switch(col){
         case Columns::COL_PERIOD:

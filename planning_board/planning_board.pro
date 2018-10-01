@@ -8,8 +8,8 @@ include(../../../shared_classes/message_handler/message_handler.pri)
 include(../../../shared_classes/single_apprun/single_apprun.pri)
 #include(../../../shared_classes/qtxlsx/qtxlsx.pri)
 
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../../shared_classes/qtxlsx/build-qtxlsx-Release/release/ -lQtXlsx
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../../shared_classes/qtxlsx/build-qtxlsx-Release/debug/ -lQtXlsx
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../shared_classes/qtxlsx/build-qtxlsx-Release/release/ -lQtXlsx
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../shared_classes/qtxlsx/build-qtxlsx-Release/debug/ -lQtXlsx
 else:unix: LIBS += -L$$OUT_PWD/../../shared_classes/qtxlsx/build-qtxlsx-Release/ -lQtXlsx
 
 INCLUDEPATH += $$PWD/../../../shared_classes/qtxlsx
