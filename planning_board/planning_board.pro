@@ -9,7 +9,8 @@ include(../../../shared_classes/single_apprun/single_apprun.pri)
 #include(../../../shared_classes/qtxlsx/qtxlsx.pri)
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../shared_classes/qtxlsx/build-qtxlsx-Release/release/ -lQtXlsx
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../shared_classes/qtxlsx/build-qtxlsx-Release/debug/ -lQtXlsx
+#else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../shared_classes/qtxlsx/build-qtxlsx-Release/debug/ -lQtXlsx
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../shared_classes/qtxlsx/build-qtxlsx-Release/release/ -lQtXlsx
 else:unix: LIBS += -L$$OUT_PWD/../../shared_classes/qtxlsx/build-qtxlsx-Release/ -lQtXlsx
 
 INCLUDEPATH += $$PWD/../../../shared_classes/qtxlsx
@@ -39,7 +40,7 @@ DEFINES += COL_LOSTTIME_SIZE=150
 
 CONFIG  += c++17
 
-QT      += core gui network widgets
+QT      += core gui network widgets concurrent
 
 TARGET = planning_board
 TEMPLATE = app

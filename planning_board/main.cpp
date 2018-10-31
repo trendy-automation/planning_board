@@ -16,8 +16,8 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     MessageHandler *msgHandler = new MessageHandler;
-    qRegisterMetaType<QList<hourItem*>>("QList<hourItem*>");
-    qRegisterMetaType<QList<taskItem*>>("QList<taskItem*>");
+//    qRegisterMetaType<TaskInfoList>("TaskInfoList");
+//    qRegisterMetaType<TaskInfo>("TaskInfo>");
     qRegisterMetaType<QVector<int>>("QVector<int>");
     qRegisterMetaType<kanbanItem>("kanbanItem");
     Planner *planner = new Planner;
@@ -36,7 +36,8 @@ int main(int argc, char *argv[])
             if (keyState == 1 || keyState == -32767)
             {
                 if((short)i==13){
-                    planner->addKanban(*buffer);
+                    //planner->addKanban(*buffer);
+                    planner->parseBuffer(*buffer);
                     buffer->clear();
                 }
                 if((short)i>=48 && (short)i<=57)

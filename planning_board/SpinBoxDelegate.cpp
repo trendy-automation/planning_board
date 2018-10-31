@@ -80,12 +80,12 @@ void SpinBoxDelegate::setEditorData(QWidget *editor,
     int value = index.model()->data(index, Qt::EditRole).toInt();
     const QAbstractItemModel *model = index.model();
     QSpinBox *spinBox = static_cast<QSpinBox*>(editor);
-    if(index.column()==Planner::Columns::COL_ACTUAL)
-        spinBox->setMaximum(model->data(model->index(index.row(),Planner::Columns::COL_PLAN)).toUInt());//TBD
-    if(index.column()==Planner::Columns::COL_LOSTTIME)
-        spinBox->setMaximum(60);
-    if(index.column()==Planner::Columns::COL_SCRAP)
-        spinBox->setMaximum(model->data(model->index(index.row(),(int)Planner::Columns::COL_ACTUAL)).toUInt());
+//    if(index.column()==Planner::Columns::COL_ACTUAL)
+//        spinBox->setMaximum(model->data(model->index(index.row(),Planner::Columns::COL_PLAN)).toUInt());//TBD
+//    if(index.column()==Planner::Columns::COL_LOSTTIME)
+//        spinBox->setMaximum(60);
+//    if(index.column()==Planner::Columns::COL_SCRAP)
+//        spinBox->setMaximum(model->data(model->index(index.row(),(int)Planner::Columns::COL_ACTUAL)).toUInt());
     spinBox->setValue(value);
 }
 //! [2]
@@ -106,8 +106,12 @@ void SpinBoxDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,
 void SpinBoxDelegate::updateEditorGeometry(QWidget *editor,
     const QStyleOptionViewItem &option, const QModelIndex &/* index */) const
 {
+//    editor->setStyleSheet("QSpinBox::item { border: 0.5px ; border-style: solid ; border-color: lightgray ;}");
     editor->setGeometry(option.rect);
 }
+
+//virtual void	paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index) const {}
+
 //! [4]
 //!
 //    bool SpinBoxDelegate::eventFilter(QObject *o, QEvent *e)

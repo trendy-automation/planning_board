@@ -64,6 +64,7 @@ public:
 
     void updateEditorGeometry(QWidget *editor,
         const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    //virtual void	paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index) const;
 //private:
 //    bool eventFilter(QObject *o, QEvent *e);
 };

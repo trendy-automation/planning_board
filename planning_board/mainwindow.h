@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QTableView>
+#include <QTreeView>
 #include <QLabel>
 #include <QProgressBar>
 #include "ComboBoxDelegate.h"
@@ -19,7 +19,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QAbstractTableModel*model,QWidget *parent = 0);
+    explicit MainWindow(QAbstractItemModel *model, QWidget *parent = 0);
     void setRowView(int row);
     void toggleView();
 
@@ -30,7 +30,7 @@ public slots:
 
 private:
     Ui::MainWindow *ui;
-    QTableView *tableView;
+    QTreeView *treeView;
     QLabel *statusLabel;
     QProgressBar *statusProgressBar;
 

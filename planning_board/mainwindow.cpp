@@ -3,7 +3,7 @@
 #include <QHeaderView>
 #include "planner.h"
 
-MainWindow::MainWindow(QAbstractTableModel *model, QWidget *parent) :
+MainWindow::MainWindow(QAbstractItemModel *model, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
@@ -16,12 +16,11 @@ MainWindow::MainWindow(QAbstractTableModel *model, QWidget *parent) :
         this->setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
     }
     this->setWindowTitle("Доска планирования производства");
-    tableView = new QTableView(this);
-    tableView->setModel(model);
-    this->setCentralWidget(tableView);
+    treeView = new QTreeView(this);
+    treeView->setModel(model);
+    this->setCentralWidget(treeView);
     this->setFont(QFont("Helvetica [Croyx]",FONT_VALUE));
-    tableView->show();
-
+    treeView->show();
     statusLabel = new QLabel(this);
     statusProgressBar = new QProgressBar(this);
     //statusLabel->setText("Электронная доска планирования");
@@ -31,39 +30,44 @@ MainWindow::MainWindow(QAbstractTableModel *model, QWidget *parent) :
     ui->statusBar->addPermanentWidget(statusProgressBar,1);
     ui->statusBar->showMessage("Faurecia");
     statusProgressBar->setValue(0);
-    //tableView->keyboardSearch();
-    tableView->setTabKeyNavigation(false);
+    //treeView->keyboardSearch();
+    treeView->setTabKeyNavigation(false);
     Planner *planner = static_cast<Planner*>(model);
     QObject::connect(planner,&Planner::dataChanged,[planner,this](){
-//                tableView->resizeColumnsToContents();
-//                tableView->resizeRowsToContents();
+//                treeView->resizeColumnsToContents();
+//                treeView->resizeRowsToContents();
         statusProgressBar->setValue(planner->getProgress());
     });
-    QObject::connect(planner,&Planner::modelSpanned,tableView,&QTableView::setSpan);
-    tableView->verticalHeader()->setSectionResizeMode (QHeaderView::ResizeToContents);
-    //tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    tableView->horizontalHeader()->setSectionResizeMode(Planner::Columns::COL_PERIOD,QHeaderView::Fixed);
-    tableView->horizontalHeader()->setSectionResizeMode(Planner::Columns::COL_PLAN,QHeaderView::Fixed);
-    tableView->horizontalHeader()->setSectionResizeMode(Planner::Columns::COL_ACTUAL,QHeaderView::Fixed);
-    tableView->horizontalHeader()->setSectionResizeMode(Planner::Columns::COL_REFERENCE,QHeaderView::ResizeToContents);
-    tableView->horizontalHeader()->setSectionResizeMode(Planner::Columns::COL_LOSTTIME,QHeaderView::Fixed);
-    tableView->horizontalHeader()->setSectionResizeMode(Planner::Columns::COL_NOTES,QHeaderView::Stretch);
-    tableView->horizontalHeader()->setSectionResizeMode(Planner::Columns::COL_SCRAP,QHeaderView::Fixed);
-    tableView->horizontalHeader()->setSectionsClickable(false);
-    tableView->horizontalHeader()->setDefaultSectionSize(DefaultSectionSize);
-    tableView->setColumnWidth(Planner::Columns::COL_PERIOD,COL_PERIOD_SIZE);
-    tableView->setColumnWidth(Planner::Columns::COL_LOSTTIME,COL_LOSTTIME_SIZE);
-    tableView->setEditTriggers(QAbstractItemView::AllEditTriggers);
-    tableView->setItemDelegateForColumn(Planner::Columns::COL_NOTES, new ComboBoxDelegate(tableView));
-//    tableView->setItemDelegateForColumn(Planner::Columns::COL_ACTUAL,new SpinBoxDelegate); //TBD
-    tableView->setItemDelegateForColumn(Planner::Columns::COL_LOSTTIME,new SpinBoxDelegate);
-    tableView->setItemDelegateForColumn(Planner::Columns::COL_SCRAP,new SpinBoxDelegate);
-    tableView->setSelectionMode(QAbstractItemView::NoSelection);//SingleSelection
-    tableView->setSelectionBehavior(QAbstractItemView::SelectItems);//SelectItems
-    //tableView->resizeColumnsToContents();
-    //tableView->resizeRowsToContents();
-    tableView->setWordWrap(true);
-    tableView->setTextElideMode(Qt::ElideMiddle);
+    //QObject::connect(planner,&Planner::modelSpanned,treeView,&QTreeView     ::setSpan);
+    //treeView     ->verticalHeader()->setSectionResizeMode (QHeaderView::ResizeToContents);
+    //treeView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    treeView->header()->setSectionResizeMode(Planner::Columns::COL_PERIOD,QHeaderView::Fixed);
+    treeView->header()->setSectionResizeMode(Planner::Columns::COL_PLAN,QHeaderView::Fixed);
+    treeView->header()->setSectionResizeMode(Planner::Columns::COL_ACTUAL,QHeaderView::Fixed);
+    treeView->header()->setSectionResizeMode(Planner::Columns::COL_REFERENCE,QHeaderView::ResizeToContents);
+    treeView->header()->setSectionResizeMode(Planner::Columns::COL_LOSTTIME,QHeaderView::Fixed);
+    treeView->header()->setSectionResizeMode(Planner::Columns::COL_NOTES,QHeaderView::Stretch);
+    treeView->header()->setSectionResizeMode(Planner::Columns::COL_SCRAP,QHeaderView::Fixed);
+    treeView->header()->setSectionsClickable(false);
+    treeView->header()->setDefaultSectionSize(DefaultSectionSize);
+    treeView->setColumnWidth(Planner::Columns::COL_PERIOD,COL_PERIOD_SIZE);
+    treeView->setColumnWidth(Planner::Columns::COL_LOSTTIME,COL_LOSTTIME_SIZE);
+    treeView->setEditTriggers(QAbstractItemView::AllEditTriggers);
+    treeView->setItemDelegateForColumn(Planner::Columns::COL_NOTES, new ComboBoxDelegate(treeView));
+//    treeView->setItemDelegateForColumn(Planner::Columns::COL_ACTUAL,new SpinBoxDelegate); //TBD
+    treeView->setItemDelegateForColumn(Planner::Columns::COL_LOSTTIME,new SpinBoxDelegate);
+    treeView->setItemDelegateForColumn(Planner::Columns::COL_SCRAP,new SpinBoxDelegate);
+    treeView->setItemDelegateForColumn(Planner::Columns::COL_OPERATORS,new SpinBoxDelegate);
+//    treeView->setStyleSheet("QTreeView::item { border: 0.5px ; border-style: solid ; border-color: lightgray ;}");
+//    losttimeDelegate->setStyleSheet("SpinBoxDelegate::item { border: 0.5px ; border-style: solid ; border-color: lightgray ;}");
+//    scrapDelegate->setStyleSheet("SpinBoxDelegate::item { border: 0.5px ; border-style: solid ; border-color: lightgray ;}");
+//    nodesDelegate->setStyleSheet("ComboBoxDelegate::item { border: 0.5px ; border-style: solid ; border-color: lightgray ;}");
+    treeView->setSelectionMode(QAbstractItemView::NoSelection);//SingleSelection
+    treeView->setSelectionBehavior(QAbstractItemView::SelectItems);//SelectItems
+    //treeView->resizeColumnsToContents();
+    //treeView->resizeRowsToContents();
+    treeView->setWordWrap(true);
+    treeView->setTextElideMode(Qt::ElideMiddle);
 
 }
 
@@ -74,20 +78,30 @@ MainWindow::~MainWindow()
 
 void MainWindow::toggleView()
 {
-    tableView->setColumnHidden(Planner::Columns::COL_ACTUAL,!tableView->isColumnHidden(Planner::Columns::COL_ACTUAL));
-    tableView->setColumnHidden(Planner::Columns::COL_REFERENCE,!tableView->isColumnHidden(Planner::Columns::COL_REFERENCE));
-    tableView->setColumnHidden(Planner::Columns::COL_SCRAP,!tableView->isColumnHidden(Planner::Columns::COL_SCRAP));
-//    tableView->resizeColumnsToContents();
-//    tableView->resizeRowsToContents();
+    treeView->setColumnHidden(Planner::Columns::COL_ACTUAL,!treeView->isColumnHidden(Planner::Columns::COL_ACTUAL));
+    treeView->setColumnHidden(Planner::Columns::COL_REFERENCE,!treeView->isColumnHidden(Planner::Columns::COL_REFERENCE));
+    treeView->setColumnHidden(Planner::Columns::COL_SCRAP,!treeView->isColumnHidden(Planner::Columns::COL_SCRAP));
+//    treeView->resizeColumnsToContents();
+//    treeView->resizeRowsToContents();
 }
 
 void MainWindow::setRowView(int row)
 {
-    tableView->setColumnHidden(Planner::Columns::COL_ACTUAL,!tableView->isColumnHidden(Planner::Columns::COL_ACTUAL));
-    tableView->setColumnHidden(Planner::Columns::COL_REFERENCE,!tableView->isColumnHidden(Planner::Columns::COL_REFERENCE));
-    tableView->setColumnHidden(Planner::Columns::COL_SCRAP,!tableView->isColumnHidden(Planner::Columns::COL_SCRAP));
-//    tableView->resizeColumnsToContents();
-//    tableView->resizeRowToContents(row);
+    treeView->setColumnHidden(Planner::Columns::COL_ACTUAL,!treeView->isColumnHidden(Planner::Columns::COL_ACTUAL));
+    treeView->setColumnHidden(Planner::Columns::COL_REFERENCE,!treeView->isColumnHidden(Planner::Columns::COL_REFERENCE));
+    treeView->setColumnHidden(Planner::Columns::COL_SCRAP,!treeView->isColumnHidden(Planner::Columns::COL_SCRAP));
+//    treeView->resizeColumnsToContents();
+//    treeView->resizeRowToContents(row);
 }
 
 
+/*
+  QString style = "QTreeWidget::item:!selected "
+    "{ "
+      "border: 1px solid gainsboro; "
+      "border-left: none; "
+      "border-top: none; "
+    "}"
+    "QTreeWidget::item:selected {}";
+  allergiesListView->setStyleSheet(style);
+*/

@@ -1,10 +1,8 @@
 #ifndef Planner_H
 #define Planner_H
 
-#include <QAbstractTableModel>
-#include <QMap>
-#include <QStringList>
-
+#include <QAbstractItemModel>
+#include <QVector>
 
 #include "xlsxdocument.h"
 QTXLSX_USE_NAMESPACE
@@ -26,46 +24,20 @@ struct kanbanItem
     }
 };
 
-class taskItem
-{
-public:
-    taskItem(kanbanItem kanban=kanbanItem()){
-        kanbanObj=kanban;
-        countScrap=0;
-        done=false;
-        scrapNote=0;
-    }
-    void setDone(){
-        done=true;
-    }
-    kanbanItem kanbanObj;
-    int taskWorkContent;
-    int countScrap;
-    bool done;
-    int scrapNote;
-};
-
-class hourItem
-{
-public:
-    hourItem(){
-        hourPlan=QList<taskItem*>();
-        lostTime=0;
-        lostTimeNote="";
-    }
-    void appendTask(taskItem *task){
-        hourPlan.append(task);
-    }
-    QList<taskItem*> hourPlan;
-    int lostTime;
-    QString lostTimeNote;
-};
-
-
-class Planner : public QAbstractTableModel
+class Planner : public QAbstractItemModel
 {
     Q_OBJECT
 public:
+
+    enum ServiceCommands
+    {
+        SC_SCRAP,
+        SC_NOTE_LOST,
+        SC_NOTE_SCRAP
+    };
+    Q_ENUM(ServiceCommands)
+
+
     enum Columns
     {
         COL_PERIOD,
@@ -74,45 +46,63 @@ public:
         COL_REFERENCE,
         COL_LOSTTIME,
         COL_NOTES,
-        COL_SCRAP
+        COL_SCRAP,
+        COL_OPERATORS
     };
     Q_ENUM(Columns)
+
+
     explicit Planner(QObject *parent=0);
+    ~Planner();
+
+
     QVariant headerData(int section, Qt::Orientation orientation, int role) const override ;
-    int rowCount(const QModelIndex &parent = QModelIndex()) const override ;
-    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-    bool readExcelData(const QString &fileName="planning_data.xlsx");
+    virtual QModelIndex index(int row, int column, const QModelIndex &parent) const;
+    virtual QModelIndex parent(const QModelIndex &child) const;
+    virtual int rowCount(const QModelIndex &parent = QModelIndex()) const override ;
+    virtual int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+    virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+    bool canFetchMore(const QModelIndex &parent) const;
+    void fetchMore(const QModelIndex &parent);
+    bool hasChildren(const QModelIndex &parent) const;
     bool setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole) override;
+    bool readExcelData(const QString &fileName="planning_data.xlsx");
     Qt::ItemFlags flags(const QModelIndex & index) const override ;
     int getProgress();
     virtual void keyboardSearch(const QString& search) {}
 
 public slots:
+    void parseBuffer(const QByteArray &kanban);
     void addKanban(const QByteArray &kanban);
 
 private:
-    void planBoardUpdate();
-    int getCurrentHourNum();
-    bool saveExcelReport(const QString &fileName);
 
+
+
+    struct TaskInfo;
+    typedef QVector<TaskInfo> TaskInfoList;
+    TaskInfoList _tasks;
+    TaskInfoList _notAttachedTasks;
+    int lastHour = -1;
+
+    QMap<QByteArray,kanbanItem> kanbanMap;
+    QMap<Columns,QString> headers;
+    QStringList lostTimeNoteList;//=QStringList()<<""<<"Организационные \nпроблемы"<<"Нет тары"<<"Нет компонентов"
+    //              <<"Доработка"<<"Поломка робота"<<"Поломка тетра"<<"Поломка другое";
+    QStringList ActionsNoteList=QStringList()<<""<<"Готово"<<"Нет на литье"<<"Нет тары"<<"Нет BOP"<<"Отмена";
+    //QStringList ResultsNoteList=QStringList()<<""<<;
+    QStringList scrapNoteList;//=QStringList()<<""<<"Царапины"<<"Прожог";
+    //QStringList serviceCommandsList=QStringList()<<"SCRAP"<<"LNOTE"<<"SNOTE";
+
+    void planBoardUpdate();
+    int getCurrentHourNum() const;
+    int getStartHourNum() const;
+    bool saveExcelReport(const QString &fileName);
+    int findRow(const TaskInfo *TaskInfo) const;
 
 signals:
     void editCompleted(const QString &);
     void modelSpanned(int,int,int,int);
-
-private:
-
-    QMap<QByteArray,kanbanItem> kanbanMap;
-    QList<hourItem*> planBoard;
-    //QMap<int,taskItem*> tasks;
-    QList<taskItem*> notAttachedTasks;
-    QMap<Columns,QString> headers;
-    QStringList lostTimeNoteList;//=QStringList()<<""<<"Организационные \nпроблемы"<<"Нет тары"<<"Нет компонентов"
-                                 //              <<"Доработка"<<"Поломка робота"<<"Поломка тетра"<<"Поломка другое";
-    QStringList scrapNoteList;//=QStringList()<<""<<"Царапины"<<"Прожог";
-
-
 
 
 };
