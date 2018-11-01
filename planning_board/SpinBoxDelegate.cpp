@@ -47,6 +47,7 @@
 
 #include <QtGui>
 #include <QLineEdit>
+#include <QApplication>
 
 #include "SpinBoxDelegate.h"
 
@@ -104,10 +105,29 @@ void SpinBoxDelegate::setModelData(QWidget *editor, QAbstractItemModel *model,
 
 //! [4]
 void SpinBoxDelegate::updateEditorGeometry(QWidget *editor,
-    const QStyleOptionViewItem &option, const QModelIndex &/* index */) const
+    const QStyleOptionViewItem &option, const QModelIndex &index ) const
 {
 //    editor->setStyleSheet("QSpinBox::item { border: 0.5px ; border-style: solid ; border-color: lightgray ;}");
+//    editor->setStyleSheet("QSpinBox::up-arrow {  width: 7px;  height: 7px; }"
+//                         "QSpinBox::down-arrow {  width: 10px;  height: 7px; }");
+//    const QWidget* const widget = option.widget;
+//    QStyle* const style = widget ? widget->style() : QApplication::style();
+//    QStyleOptionComboBox cbOption;
+//    cbOption.rect = option.rect;
+//    cbOption.currentText = index.data(Qt::DisplayRole).toString();
+//    if(index.flags().testFlag(Qt::ItemIsEditable)){
+//           cbOption.direction = option.direction;
+//           cbOption.currentIcon = index.data(Qt::DecorationRole).value<QIcon>();
+//           cbOption.fontMetrics = option.fontMetrics;
+//           const int iconWidth = style->pixelMetric(QStyle::PM_SmallIconSize, Q_NULLPTR, widget);
+//           cbOption.iconSize = QSize(iconWidth, iconWidth);
+//           cbOption.palette = option.palette;
+//           cbOption.state = option.state;
+//           cbOption.styleObject = option.styleObject;
+//    }
+
     editor->setGeometry(option.rect);
+    editor->focusPolicy();
 }
 
 //virtual void	paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index) const {}
@@ -122,4 +142,6 @@ void SpinBoxDelegate::updateEditorGeometry(QWidget *editor,
 //    }
 //    return SpinBoxDelegate::eventFilter(o, e);
 //}
+
+
 
