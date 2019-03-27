@@ -7,6 +7,7 @@
 #include <QProgressBar>
 #include "ComboBoxDelegate.h"
 #include "SpinBoxDelegate.h"
+#include "StyledItemDelegate.h"
 
 
 

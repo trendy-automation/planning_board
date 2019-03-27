@@ -3,30 +3,22 @@
 
 #include <QAbstractItemModel>
 #include <QVector>
+#include "taskinfo.h"
 
 #include "xlsxdocument.h"
+
 QTXLSX_USE_NAMESPACE
 
 
-struct kanbanItem
-{
-    int countParts;
-    int partWorkContent;
-    QByteArray reference;
-    QByteArray sebango;
-    QByteArray kanban;
-    kanbanItem(){
-        countParts=0;
-        partWorkContent=0;
-        reference="";
-        sebango="";
-        kanban="";
-    }
-};
 
 class Planner : public QAbstractItemModel
 {
     Q_OBJECT
+
+
+
+
+
 public:
 
     enum ServiceCommands
@@ -43,11 +35,12 @@ public:
         COL_PERIOD,
         COL_PLAN,
         COL_ACTUAL,
-        COL_REFERENCE,
+        COL_SEBANGO,
         COL_LOSTTIME,
         COL_NOTES,
         COL_SCRAP,
-        COL_OPERATORS
+        COL_OPERATORS,
+        COL_STATUS
     };
     Q_ENUM(Columns)
 
@@ -69,17 +62,22 @@ public:
     bool readExcelData(const QString &fileName="planning_data.xlsx");
     Qt::ItemFlags flags(const QModelIndex & index) const override ;
     int getProgress();
+    int getCurrentHourNum() const;
+    int getStartHourNum() const;
     virtual void keyboardSearch(const QString& search) {}
+
 
 public slots:
     void parseBuffer(const QByteArray &kanban);
     void addKanban(const QByteArray &kanban);
+    bool kanbanDeclarated(const QByteArray &kanban);
+
 
 private:
 
 
 
-    struct TaskInfo;
+    //struct TaskInfo;
     typedef QVector<TaskInfo> TaskInfoList;
     TaskInfoList _tasks;
     TaskInfoList _notAttachedTasks;
@@ -87,22 +85,27 @@ private:
 
     QMap<QByteArray,kanbanItem> kanbanMap;
     QMap<Columns,QString> headers;
-    QStringList lostTimeNoteList;//=QStringList()<<""<<"Организационные \nпроблемы"<<"Нет тары"<<"Нет компонентов"
+    QStringList taskNoteList;//=QStringList()<<""<<"Организационные \nпроблемы"<<"Нет тары"<<"Нет компонентов"
     //              <<"Доработка"<<"Поломка робота"<<"Поломка тетра"<<"Поломка другое";
-    QStringList ActionsNoteList=QStringList()<<""<<"Готово"<<"Нет на литье"<<"Нет тары"<<"Нет BOP"<<"Отмена";
+    //QStringList actionsNoteList=QStringList()<<""<<"Готово"<<"Нет на литье"<<"Нет тары"<<"Нет BOP"<<"Отмена";
+    QStringList statusList=QStringList()<<""<<"Готово"<<"Отмена"; //1-готово 2-отмена
     //QStringList ResultsNoteList=QStringList()<<""<<;
     QStringList scrapNoteList;//=QStringList()<<""<<"Царапины"<<"Прожог";
     //QStringList serviceCommandsList=QStringList()<<"SCRAP"<<"LNOTE"<<"SNOTE";
 
     void planBoardUpdate();
-    int getCurrentHourNum() const;
-    int getStartHourNum() const;
     bool saveExcelReport(const QString &fileName);
     int findRow(const TaskInfo *TaskInfo) const;
+    void taskDone(TaskInfo* taskInfo);
+    void taskCancel(TaskInfo* taskInfo);
+
+
 
 signals:
     void editCompleted(const QString &);
     void modelSpanned(int,int,int,int);
+    void hourHasChanged(int,int);
+    void uiEnable(bool);
 
 
 };

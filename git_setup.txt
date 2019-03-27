@@ -16,6 +16,13 @@ clip < ~/.ssh/id_rsa.pub
 eval $(ssh-agent -s)
 ssh-add ~/.ssh/id_rsa
 
+git config --global http.proxy http://kolesnik:P%40ssw0rqwe@proxy.standard.corp:8080
+git config --global https.proxy https://kolesnik:P%40ssw0rqwe@proxy.standard.corp:8080
+
+ilya-kolesnic@yandex.ru
+basic748
+trendy-automation
+
 cd /F/Qt_projects/planning_board/source
 git init
 git add * 

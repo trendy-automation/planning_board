@@ -32,11 +32,13 @@ DEFINES += BUILD_PATH='\"$${OUT_PWD}\"'
 DEFINES += APP_OPTION_WATHCDOG='\\"watchdog\\"'
 DEFINES += APP_OPTION_FORCE='\\"force\\"'
 DEFINES += APP_VER='\\"1.0\\"'
+DEFINES += FONT_TYPE='\\"Helvetica\\"'
 DEFINES += FONT_VALUE=18
 DEFINES += DefaultSectionSize=70
 DEFINES += COL_PERIOD_SIZE=110
 DEFINES += COL_LOSTTIME_SIZE=150
-
+DEFINES += COL_OPERATORS_SIZE=150
+DEFINES += COL_STATUS_SIZE=150
 
 CONFIG  += c++17
 
@@ -69,10 +71,14 @@ HEADERS += \
         mainwindow.h \
         ComboBoxDelegate.h \
         SpinBoxDelegate.h \
-        planner.h
+        StyledItemDelegate.h \
+        planner.h \
+    taskinfo.h
 
 FORMS += \
         mainwindow.ui
 
 DISTFILES += \
     ../git_setup.txt
+
+RESOURCES += resources.qrc \

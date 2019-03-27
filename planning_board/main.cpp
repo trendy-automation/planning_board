@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 //    qRegisterMetaType<TaskInfo>("TaskInfo>");
     qRegisterMetaType<QVector<int>>("QVector<int>");
     qRegisterMetaType<kanbanItem>("kanbanItem");
-    Planner *planner = new Planner;
+    Planner *planner = new Planner();
     //planner->readExcelData();
     //button update work content
     //memory of plan start time for recalc on addPlan
@@ -58,6 +58,10 @@ int main(int argc, char *argv[])
         a.quit();
         return 0;
     }
+
+//    QFont font;
+//    font.setFamily(font.defaultFamily());
+//    a.setFont(font);
 
     MainWindow w(planner);
     w.show();

@@ -53,9 +53,12 @@
 
 
 //! [0]
-SpinBoxDelegate::SpinBoxDelegate(QObject *parent)
-    : QItemDelegate(parent)
+SpinBoxDelegate::SpinBoxDelegate(QObject *parent, int minVal, int maxVal)
+    : QItemDelegate(parent),
+    minVal(minVal),
+    maxVal(maxVal)
 {
+
 }
 //! [0]
 
@@ -64,11 +67,13 @@ QWidget *SpinBoxDelegate::createEditor(QWidget *parent,
     const QStyleOptionViewItem &/* option */,
     const QModelIndex &/* index */) const
 {
-    QSpinBox *editor = new QSpinBox(parent);
+    QSpinBox *editor = new QSpinBox(parent/*static_cast<QWidget *>(this->parent())*/);
+
+    editor->setObjectName("QSpinBox");
     editor->findChild<QLineEdit*>()->setReadOnly(true);
 //    editor->installEventFilter(parent);
-    editor->setMinimum(0);
-    editor->setMaximum(60);
+    editor->setMinimum(minVal);
+    editor->setMaximum(maxVal);
 
     return editor;
 }
@@ -110,6 +115,7 @@ void SpinBoxDelegate::updateEditorGeometry(QWidget *editor,
 //    editor->setStyleSheet("QSpinBox::item { border: 0.5px ; border-style: solid ; border-color: lightgray ;}");
 //    editor->setStyleSheet("QSpinBox::up-arrow {  width: 7px;  height: 7px; }"
 //                         "QSpinBox::down-arrow {  width: 10px;  height: 7px; }");
+//    editor->setStyleSheet("QSpinBox:hover{border-width: 2px;border-style: solid;border-color: blue;}");
 //    const QWidget* const widget = option.widget;
 //    QStyle* const style = widget ? widget->style() : QApplication::style();
 //    QStyleOptionComboBox cbOption;
@@ -126,11 +132,56 @@ void SpinBoxDelegate::updateEditorGeometry(QWidget *editor,
 //           cbOption.styleObject = option.styleObject;
 //    }
 
+//    editor->setProperty("col",index.column());
+//    editor->setProperty("row",index.row());
+//    editor->setProperty("rect",option.rect);
     editor->setGeometry(option.rect);
-    editor->focusPolicy();
 }
 
+//void SpinBoxDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override
+//{
+//    QStyleOptionViewItemV4 myOption = option;
+//    myOption.text = Items[index.data().toInt()].c_str();
+//    if(index.data().toInt()!=0)
+//        qDebug()<<"index.data().toInt()"<<index.data().toInt()<<"myOption.text"<<myOption.text;
+//  //  if(!myOption.text.isEmpty())
+//  //      qDebug()<<"Items[index.data().toInt()].c_str()"<<myOption.text;
+//  //  myOption.text = index.data().toString();
+//  //  if(!myOption.text.isEmpty())
+//  //      qDebug()<<"index.data().toString()"<<index.data().toString();
+//  //  if(index.data().toInt()!=0)
+//    //setEditorData(,index);
+//  //  QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &myOption, painter);
+//  //  if (!m_alwaysPaintCombo)
+//  //       return ComboBoxDelegate::paint(painter, option, index);
+//     const QWidget* const widget = option.widget;
+//     QStyle* const style = widget ? widget->style() : QApplication::style();
+//     QStyleOptionComboBox cbOption;
+//     cbOption.rect = option.rect;
+//     cbOption.currentText = index.data(Qt::DisplayRole).toString();
+//     if(index.flags().testFlag(Qt::ItemIsEditable)){
+//            cbOption.direction = option.direction;
+//            cbOption.currentIcon = index.data(Qt::DecorationRole).value<QIcon>();
+//            cbOption.fontMetrics = option.fontMetrics;
+//            const int iconWidth = style->pixelMetric(QStyle::PM_SmallIconSize, Q_NULLPTR, widget);
+//            cbOption.iconSize = QSize(iconWidth, iconWidth);
+//            cbOption.palette = option.palette;
+//            cbOption.state = option.state;
+//            cbOption.styleObject = option.styleObject;
+//     }
+//     style->drawComplexControl(QStyle::CC_ComboBox, &cbOption, painter, widget);
+//     style->drawControl(QStyle::CE_ComboBoxLabel, &cbOption, painter, widget);
+//}
+
 //virtual void	paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index) const {}
+
+//void SpinBoxDelegate::paintEvent(QPaintEvent *e) {
+//   QSpinBox::paintEvent(e);
+//   if (model() && model()->rowCount(rootIndex()) > 0) return;
+//   // The view is empty.
+//   QPainter p(this->viewport());
+//   p.drawText(rect(0,0,0), Qt::AlignCenter, "");
+//}
 
 //! [4]
 //!

@@ -53,7 +53,7 @@ class SpinBoxDelegate : public QItemDelegate
     Q_OBJECT
 
 public:
-    SpinBoxDelegate(QObject *parent = 0);
+    SpinBoxDelegate(QObject *parent = 0, int minVal=0,int maxVal=100);
 
     QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
                           const QModelIndex &index) const;
@@ -65,7 +65,9 @@ public:
     void updateEditorGeometry(QWidget *editor,
         const QStyleOptionViewItem &option, const QModelIndex &index) const;
     //virtual void	paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index) const;
-//private:
+private:
+    int minVal;
+    int maxVal;
 //    bool eventFilter(QObject *o, QEvent *e);
 };
 
