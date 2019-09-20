@@ -46,6 +46,8 @@
 #include <QObject>
 #include <QSize>
 #include <QSpinBox>
+#include <QPainter>
+
 #include "planner.h"
 
 class SpinBoxDelegate : public QItemDelegate
@@ -65,6 +67,8 @@ public:
     void updateEditorGeometry(QWidget *editor,
         const QStyleOptionViewItem &option, const QModelIndex &index) const;
     //virtual void	paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index) const;
+    void paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index ) const;
+
 private:
     int minVal;
     int maxVal;

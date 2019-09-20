@@ -2,7 +2,9 @@
 #define StyledItemDelegate_H
 
 #include <QStyledItemDelegate>
+#include <QPainter>
 #include <QDebug>
+#include <QApplication>
 
 class StyledItemDelegate : public QStyledItemDelegate
 {
@@ -22,19 +24,26 @@ public:
         QRect outRect = metrics.boundingRect(QRect(QPoint(0, 0), baseSize), Qt::AlignCenter, text);
 //        qDebug() << outRect.height();
         //baseSize.setHeight(outRect.height()*(text.count("\n")-1));
-
         //baseSize.setHeight(qMax(qMax(58,outRect.height()),24*(text.count("\n"))));
-
-        baseSize.setHeight(outRect.height());
-
+        baseSize.setHeight(qMax(qApp->property("minRowHeight").toInt(),outRect.height()));
         //if (text.count("\n")<1)
         //    baseSize.setHeight(outRect.height());
         //else
         //    baseSize.setHeight(outRect.height()/2*(text.count("\n")+1));
-        if(baseSize.height()>58)
-            qDebug()<<outRect.height()<<text.count("\n")<<baseSize.height()<<text;
+        //if(baseSize.height()>58)
+        //    qDebug()<<outRect.height()<<text.count("\n")<<baseSize.height()<<text;
         //baseSize.setHeight(qMax(58,outRect.height()));
         return baseSize;
+    }
+
+
+    void paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index ) const
+    {
+        painter->save();
+        painter->setPen(QColor(Qt::black));
+        painter->drawRect(option.rect);
+        painter->restore();
+        QStyledItemDelegate::paint(painter, option, index);
     }
 
 };

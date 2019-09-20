@@ -23,7 +23,10 @@ public:
 
     enum ServiceCommands
     {
-        SC_SCRAP,
+        SC_NONE,
+        SC_TOGGLE_VIEW,
+        SC_SCRAP_LAST_HOUR,
+        SC_SCRAP_CUR_HOUR,
         SC_NOTE_LOST,
         SC_NOTE_SCRAP
     };
@@ -43,7 +46,6 @@ public:
         COL_STATUS
     };
     Q_ENUM(Columns)
-
 
     explicit Planner(QObject *parent=0);
     ~Planner();
@@ -70,13 +72,15 @@ public:
 public slots:
     void parseBuffer(const QByteArray &kanban);
     void addKanban(const QByteArray &kanban);
-    bool kanbanDeclarated(const QByteArray &kanban);
+    bool kanbanProdused(const QByteArray &kanban);
 
 
 private:
 
-
-
+    void startNextShift();
+    void addKnownTask(const QByteArray &sebango,int hourNum,int workContent);
+    void startSMED();
+    void finishSMED();    
     //struct TaskInfo;
     typedef QVector<TaskInfo> TaskInfoList;
     TaskInfoList _tasks;

@@ -43,7 +43,7 @@ public:
         parent(0),
         addedTime(QTime::currentTime()),
         countScrap(0),
-        countOpertators(2),
+        countOpertators(1),
         done(false),
         canceled(false),
         scrapNote(QString()),
@@ -60,7 +60,7 @@ public:
         parent(parent),
         addedTime(QTime::currentTime()),
         countScrap(0),
-        countOpertators(2),
+        countOpertators(1),
         done(false),
         canceled(false),
         scrapNote(QString()),
@@ -120,6 +120,7 @@ public:
     QVector<TaskInfo> children;
     TaskInfo* parent;
     QTime addedTime;
+    //QTime completionTime;
     bool mapped;
     kanbanItem kanbanObj;
     int taskWorkContent;

@@ -72,7 +72,8 @@ MainWindow::MainWindow(QAbstractItemModel *model, QWidget *parent) :
 
     QWidget *frame = new QWidget(this);
     frame->setGeometry(0, 0, 141, 51);
-    frame->setStyleSheet("background-image: url(:logo.jpg)");
+    //frame->setStyleSheet("background-image: url(:/logo.jpg)");
+    frame->setStyleSheet(QString("background-image: url(%1/logo.jpg)").arg(qApp->applicationDirPath()));
     QAction *logoPlace = this->ui->menuBar->addAction("             ");
     QAction *action1 = this->ui->menuBar->addAction("Развернуть текущий час");
     this->connect(action1, &QAction::triggered, [this,model,planner,action1](){
@@ -135,33 +136,34 @@ MainWindow::MainWindow(QAbstractItemModel *model, QWidget *parent) :
     treeView->setColumnWidth(Planner::Columns::COL_OPERATORS,COL_OPERATORS_SIZE);
     treeView->setColumnWidth(Planner::Columns::COL_STATUS,COL_STATUS_SIZE);
     treeView->setEditTriggers(QAbstractItemView::AllEditTriggers);
+    //treeView->setMinimumHeight(500);
+    //treeView->setMaximumHeight(1000);
+    treeView->setItemDelegate(new GridDelegate(treeView));
 
     QStringList taskNoteList = planner->property("taskNoteList").toStringList();
     QStringList statusList = planner->property("statusList").toStringList();
-    //QStringList scrapNoteList = treeView->model()->property("scrapNoteList").toStringList(); //TBD
+//    //QStringList scrapNoteList = treeView->model()->property("scrapNoteList").toStringList(); //TBD
 
     treeView->setItemDelegateForColumn(Planner::Columns::COL_NOTES, new ComboBoxDelegate(this,taskNoteList));
-//    treeView->setItemDelegateForColumn(Planner::Columns::COL_ACTUAL,new SpinBoxDelegate); //TBD
-
-    //Qt::StrongFocus
-    //SpinBoxDelegate * operatorsDelegate = new SpinBoxDelegate;
-
     treeView->setItemDelegateForColumn(Planner::Columns::COL_PERIOD,new StyledItemDelegate(this));
     treeView->setItemDelegateForColumn(Planner::Columns::COL_SEBANGO,new StyledItemDelegate(this));
     treeView->setItemDelegateForColumn(Planner::Columns::COL_LOSTTIME,new SpinBoxDelegate(this,0,60));
     treeView->setItemDelegateForColumn(Planner::Columns::COL_SCRAP,new SpinBoxDelegate(this,0,1000));
     treeView->setItemDelegateForColumn(Planner::Columns::COL_OPERATORS,new SpinBoxDelegate(this,1,4));
     treeView->setItemDelegateForColumn(Planner::Columns::COL_STATUS,new ComboBoxDelegate(this,statusList));
-//    treeView->setStyleSheet("QTreeView::item { border: 0.5px ; border-style: solid ; border-color: lightgray ;}");
-//    losttimeDelegate->setStyleSheet("SpinBoxDelegate::item { border: 0.5px ; border-style: solid ; border-color: lightgray ;}");
-//    scrapDelegate->setStyleSheet("SpinBoxDelegate::item { border: 0.5px ; border-style: solid ; border-color: lightgray ;}");
-//    nodesDelegate->setStyleSheet("ComboBoxDelegate::item { border: 0.5px ; border-style: solid ; border-color: lightgray ;}");
     treeView->setSelectionMode(QAbstractItemView::NoSelection);//SingleSelection
     treeView->setSelectionBehavior(QAbstractItemView::SelectItems);//SelectItems
-    //treeView->resizeColumnsToContents();
-    //treeView->resizeRowsToContents();
     treeView->setWordWrap(true);
     treeView->setTextElideMode(Qt::ElideMiddle);
+
+//    //    treeView->setItemDelegateForColumn(Planner::Columns::COL_ACTUAL,new SpinBoxDelegate); //TBD
+//    //    treeView->setStyleSheet("QTreeView::item { border: 0.5px ; border-style: solid ; border-color: lightgray ;}");
+//    //    losttimeDelegate->setStyleSheet("SpinBoxDelegate::item { border: 0.5px ; border-style: solid ; border-color: lightgray ;}");
+//    //    scrapDelegate->setStyleSheet("SpinBoxDelegate::item { border: 0.5px ; border-style: solid ; border-color: lightgray ;}");
+//    //    nodesDelegate->setStyleSheet("ComboBoxDelegate::item { border: 0.5px ; border-style: solid ; border-color: lightgray ;}");
+//    //treeView->resizeColumnsToContents();
+//    //treeView->resizeRowsToContents();
+
 }
 
 MainWindow::~MainWindow()

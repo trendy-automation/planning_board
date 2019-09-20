@@ -5,6 +5,7 @@
 #include <vector>
 #include <QItemDelegate>
 #include <QDebug>
+#include <QPainter>
 
 class QModelIndex;
 class QWidget;

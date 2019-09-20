@@ -8,7 +8,7 @@
 #include "ComboBoxDelegate.h"
 #include "SpinBoxDelegate.h"
 #include "StyledItemDelegate.h"
-
+#include "GridDelegate.h"
 
 
 namespace Ui {

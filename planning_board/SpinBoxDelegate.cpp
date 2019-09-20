@@ -195,4 +195,12 @@ void SpinBoxDelegate::updateEditorGeometry(QWidget *editor,
 //}
 
 
+void SpinBoxDelegate::paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index ) const
+{
+    painter->save();
+    painter->setPen(QColor(Qt::black));
+    painter->drawRect(option.rect);
+    painter->restore();
+    QItemDelegate::paint(painter, option, index);
+}
 

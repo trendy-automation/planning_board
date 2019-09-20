@@ -6,6 +6,7 @@
 
 include(../../../shared_classes/message_handler/message_handler.pri)
 include(../../../shared_classes/single_apprun/single_apprun.pri)
+include(plc_station/plc_station.pri)
 #include(../../../shared_classes/qtxlsx/qtxlsx.pri)
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../shared_classes/qtxlsx/build-qtxlsx-Release/release/ -lQtXlsx
@@ -36,9 +37,10 @@ DEFINES += FONT_TYPE='\\"Helvetica\\"'
 DEFINES += FONT_VALUE=18
 DEFINES += DefaultSectionSize=70
 DEFINES += COL_PERIOD_SIZE=110
+#DEFINES += COL_SEBANGO_SIZE=130
 DEFINES += COL_LOSTTIME_SIZE=150
 DEFINES += COL_OPERATORS_SIZE=150
-DEFINES += COL_STATUS_SIZE=150
+DEFINES += COL_STATUS_SIZE=100
 
 CONFIG  += c++17
 
@@ -65,7 +67,8 @@ SOURCES += \
         mainwindow.cpp \
         ComboBoxDelegate.cpp \
         SpinBoxDelegate.cpp \
-        planner.cpp
+        planner.cpp \
+        udp_client.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -73,7 +76,9 @@ HEADERS += \
         SpinBoxDelegate.h \
         StyledItemDelegate.h \
         planner.h \
-    taskinfo.h
+        taskinfo.h \
+        udp_client.h \
+    GridDelegate.h
 
 FORMS += \
         mainwindow.ui
@@ -81,4 +86,4 @@ FORMS += \
 DISTFILES += \
     ../git_setup.txt
 
-RESOURCES += resources.qrc \
+RESOURCES += resources.qrc

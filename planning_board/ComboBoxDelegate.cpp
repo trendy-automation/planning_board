@@ -14,7 +14,8 @@
 ComboBoxDelegate::ComboBoxDelegate(QObject *parent, const QStringList &itemList)
 :QItemDelegate(parent)
 {
-        for(int i=0;i<itemList.count();++i)
+    if(!itemList.isEmpty())
+        for(int i=0;i<itemList.count()-1;++i)
             Items.push_back(itemList.at(i).toStdString());
 }
 
@@ -54,21 +55,8 @@ void ComboBoxDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionV
 
 void ComboBoxDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-  QStyleOptionViewItemV4 myOption = option;
+  QStyleOptionViewItem myOption = option;
   myOption.text = Items[index.data().toInt()].c_str();
-//  if(index.data().toInt()!=0)
-//      qDebug()<<"index.data().toInt()"<<index.data().toInt()<<"myOption.text"<<myOption.text;
-//  if(!myOption.text.isEmpty())
-//      qDebug()<<"Items[index.data().toInt()].c_str()"<<myOption.text;
-//  myOption.text = index.data().toString();
-//  if(!myOption.text.isEmpty())
-//      qDebug()<<"index.data().toString()"<<index.data().toString();
-//  if(index.data().toInt()!=0)
-  //setEditorData(,index);
-//  QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &myOption, painter);
-//  if (!m_alwaysPaintCombo)
-//       return ComboBoxDelegate::paint(painter, option, index);
-
   const QWidget* const widget = option.widget;
   QStyle* const style = widget ? widget->style() : QApplication::style();
   QStyleOptionComboBox cbOption;
@@ -83,12 +71,23 @@ void ComboBoxDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
   cbOption.state = option.state;
   cbOption.styleObject = option.styleObject;
 
-   if(index.flags().testFlag(Qt::ItemIsEditable)){
-
-        style->drawComplexControl(QStyle::CC_ComboBox, &cbOption, painter, widget);
-        style->drawControl(QStyle::CE_ComboBoxLabel, &cbOption, painter, widget);
-   }
 
 
+
+//  if(index.flags().testFlag(Qt::ItemIsEnabled)){
+//     qDebug()<<Items[index.data().toInt()].c_str();
+//}
+
+      if(index.flags().testFlag(Qt::ItemIsEditable)){
+            style->drawComplexControl(QStyle::CC_ComboBox, &cbOption, painter, widget);
+            style->drawControl(QStyle::CE_ComboBoxLabel, &cbOption, painter, widget);
+      }
+//  }
+
+      painter->save();
+      painter->setPen(QColor(Qt::black));
+      painter->drawRect(option.rect);
+      painter->restore();
+      QItemDelegate::paint(painter, option, index);
 
 }
