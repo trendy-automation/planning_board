@@ -67,6 +67,8 @@ Planner::Planner(QObject *parent) : QAbstractItemModel(parent)
     setProperty("statusList",statusList);
     setProperty("taskNoteList",taskNoteList);
     setProperty("scrapNoteList",scrapNoteList);
+
+    startSMED();
 }
 
 
@@ -179,6 +181,7 @@ void Planner::finishSMED()
     task.kanbanObj=kanbanObj;
     task.done=true;
     task.parent=&_tasks[getCurrentHourNum()];
+    task.taskWorkContent=600;
     _tasks[getCurrentHourNum()].children.append(task);
     this->planBoardUpdate();
 }
@@ -207,49 +210,60 @@ void Planner::planBoardUpdate(/*bool forceUpdate*/)
 //    qDebug()<<1<<"startHour"<<startHour<<"hourNumber"<<hourNumber;
     //Shift change - clear tasks
     if(lastHour!=hourNumber || _tasks.isEmpty()){
-        if(hourNumber==6||hourNumber==15||hourNumber==0 || _tasks.isEmpty()){
+        if(hourNumber==6||hourNumber==15||hourNumber==0||_tasks.isEmpty()){
             //start next shift
             startNextShift();
-        } else hourHasChanged(lastHour,hourNumber);
+        } else {
+            for(int j=0;j<_tasks.at(lastHour).children.count();++j)
+                if (_tasks.at(lastHour).children.at(j).running){
+                    int timeElapsed = _tasks.at(lastHour).children.at(j).addedTime.elapsed()/1000;
+                    int taskWorkContent=qMax(0,_tasks.at(lastHour).children.at(j).taskWorkContent-timeElapsed);
+                    if (taskWorkContent==0){
+                        _tasks[lastHour].children[j].lostTime=(timeElapsed-_tasks.at(lastHour).children.at(j).taskWorkContent)/60;
+                    }
+                    //TODO: timeElapsed and taskWorkContent function
+                    TaskInfo newTask(_tasks.at(lastHour).children.at(j));
+                    newTask.lostTime=0;
+                    newTask.taskWorkContent=taskWorkContent;
+                    newTask.parent=nullptr;
+                    _notAttachedTasks.append(newTask);
+                    _tasks[lastHour].children[j].taskWorkContent=timeElapsed;
+                    _tasks[lastHour].children[j].running=false;
+                    _tasks[lastHour].children[j].done=true;
+                }
+            hourHasChanged(hourNumber);
+            //copy runned tasks to next hour
+        }
+
     }
     lastHour=hourNumber;
     int lostTime;
     int hourValue=(3600-ct.minute()*60+ct.second())*_tasks.at(hourNumber).countOpertators;
 //    qDebug()<<3<<"_tasks.count()"<<_tasks.count();
     //move all kanban tasks to not attached
-    for(int i=0;i<_tasks.count();++i){
-    //for(auto task=_tasks.begin();task!=_tasks.end();++task){
-        //qDebug()<<3.1<<"task->children.count()"<<task->children.count();
-        int j=0;
-        while(_tasks.at(i).children.count()>j)
+    for(int i=0;i<_tasks.count();++i)
+        for(int j=0;j<_tasks.at(i).children.count();++j)
             if(!_tasks.at(i).children.at(j).running &&
                     !_tasks.at(i).children.at(j).done &&
                     !_tasks.at(i).children.at(j).canceled){
                     _tasks[i].children[j].parent=nullptr;
+                    _tasks[i].taskWorkContent=qMax(0,_tasks[i].taskWorkContent-_tasks.at(i).children.at(j).taskWorkContent);
                 _notAttachedTasks.append(_tasks[i].children.takeAt(j));
             }
             else {
                 if (_tasks.at(i).children.at(j).running){
-                    int taskWorkContent=_tasks[i].children[j].taskWorkContent-_tasks.at(i).children.at(j).addedTime.elapsed()/60000;
-                    if((_tasks[i].taskWorkContent+taskWorkContent)<60){
-                        _tasks[i].children[j].taskWorkContent+=taskWorkContent;
-                        _tasks[i].taskWorkContent+=taskWorkContent;
-                    } else {
-                        _tasks[i].children[j].taskWorkContent+=(60-_tasks[i].taskWorkContent);
-                        _tasks[i].taskWorkContent=60;
-                        _tasks[i].children[j].running=false;
-                        _tasks[i].children[j].done=true;
-                        taskWorkContent=(_tasks[i].taskWorkContent+taskWorkContent)-60;
-                        TaskInfo newTask(_tasks.at(i).children.at(j));
-                        newTask.taskWorkContent=taskWorkContent;
-                        newTask.parent=nullptr;
-                        _notAttachedTasks.append(newTask);
+                    int timeElapsed = _tasks.at(i).children.at(j).addedTime.elapsed()/1000;
+                    //int taskWorkContent=qMax(0,_tasks.at(i).children.at(j).taskWorkContent-timeElapsed);
+                    //int taskWorkContent =_tasks[i].children[j].taskWorkContent-timeElapsed;
+                    //if (taskWorkContent==0){
+                    if (timeElapsed> _tasks.at(i).children.at(j).taskWorkContent){
+                        _tasks[i].children[j].lostTime=(timeElapsed-_tasks.at(i).children.at(j).taskWorkContent)/60;
                     }
+
                 }
-                j++;
             }
         //qDebug()<<"task->children.count()"<<task->children.count();
-    }
+
 //    qDebug()<<4;
     qSort(_notAttachedTasks.begin(), _notAttachedTasks.end(),
           [](const TaskInfo &t1,const TaskInfo &t2){return t1<t2;});
@@ -266,8 +280,10 @@ void Planner::planBoardUpdate(/*bool forceUpdate*/)
         else
             lostTime=3600;
         for(int i=0;i<_tasks.at(h).children.count();++i)
-            if(_tasks.at(h).children.at(i).done && !_tasks.at(h).children.at(i).canceled)
+            if(_tasks.at(h).children.at(i).done && !_tasks.at(h).children.at(i).canceled){
                     lostTime-=_tasks.at(h).children.at(i).taskWorkContent;
+                    lostTime+=_tasks.at(h).children.at(i).lostTime;
+            }
         _tasks[h].lostTime=qMax(0,lostTime/60);
 //        qDebug()<<"hour"<<hour<<"_tasks[hour].lostTime"<<_tasks[hour].lostTime;
     }

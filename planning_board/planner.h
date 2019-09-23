@@ -108,7 +108,7 @@ private:
 signals:
     void editCompleted(const QString &);
     void modelSpanned(int,int,int,int);
-    void hourHasChanged(int,int);
+    void hourHasChanged(int);
     void uiEnable(bool);
 
 

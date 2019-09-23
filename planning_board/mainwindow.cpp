@@ -40,9 +40,9 @@ MainWindow::MainWindow(QAbstractItemModel *model, QWidget *parent) :
 //                treeView->resizeRowsToContents();
         statusProgressBar->setValue(planner->getProgress());
     });
-    QObject::connect(planner,&Planner::hourHasChanged,[this,planner,model](int oldHour, int newHour){
-        qDebug()<<"hourHasChanged"<<oldHour<<newHour;
-        treeView->collapse(model->index(0,oldHour));
+    QObject::connect(planner,&Planner::hourHasChanged,[this,planner,model]( int newHour){
+        qDebug()<<"hourHasChanged form"<<newHour-1<<"to"<<newHour;
+        treeView->collapse(model->index(0,newHour - 1));
         treeView->expand(model->index(0,newHour));
     });
 

@@ -116,8 +116,9 @@ public:
 
     bool operator <(const TaskInfo& another) const
     {
-        bool r = (!this->running and !another.running and (this->addedTime < another.addedTime)) or
-                  (this->running and !another.running);
+//        bool r = (!this->running and !another.running and (this->addedTime < another.addedTime)) or
+//                  (this->running and !another.running);
+        bool r = this->addedTime < another.addedTime;
         return r;
     }
 
