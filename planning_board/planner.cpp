@@ -58,7 +58,8 @@ Planner::Planner(QObject *parent) : QAbstractItemModel(parent)
         this->planBoardUpdate();
     });
     QTime ct = QTime::currentTime();
-    hourTimer->start(ct.msecsTo(QTime(ct.hour(),59,59))+2000);
+    hourTimer->start(60000);
+    //hourTimer->start(ct.msecsTo(QTime(ct.hour(),59,59))+2000);
     //we identify the top left cell
     QModelIndex topLeft = createIndex(0,0);
     //emit a signal to make the view reread identified data
@@ -115,57 +116,70 @@ bool Planner::readExcelData(const QString &fileName)
 void Planner::parseBuffer(const QByteArray &kanban)
 {
     //TODO service commands
-    if(kanban=="34703470"){
-        qDebug()<<"refresh";
+    if(kanban=="refresh_excel"){
+        qDebug()<<"refresh_excel";
         readExcelData();
         return;
     }
-    if(kanban=="11111111111"){
+    if(kanban=="startSMED"){
         startSMED();
         return;
     }
-    if(kanban=="9999999999"){
+    if(kanban=="finishSMED"){
         finishSMED();
         return;
     }
     addKanban(kanban);
-
-//    switch(kanban){
-//    case Planner::SC_SCRAP:
-//    break;
-//    default:
-//        addKanban(kanban);
-//    }
+if (kanban.startsWith("12345678"))
+    
+    switch(kanban.right(2).toInt()){
+        case Planner::SC_SCRAP_CUR_HOUR: //1234567801
+            break;
+        case Planner::SC_SCRAP_LAST_HOUR: //1234567802
+            break;
+        case Planner::SC_NOTE_SCRAP: //1234567802
+            break;
+        default:
+            qDebug()<<"Anknown service comand";
+    }
 
 }
 void Planner::startSMED()
 {
     TaskInfo task = TaskInfo();
     kanbanItem kanbanObj;
-    kanbanObj.kanban="startSMED";
+    kanbanObj.kanban="SMED";
     kanbanObj.reference="Идёт SMED";
     kanbanObj.sebango="Идёт SMED";
     task.kanbanObj=kanbanObj;
-    task.done=true;
+    task.running=true;
+    task.parent=&_tasks[getCurrentHourNum()];
     _tasks[getCurrentHourNum()].children.append(task);
     this->planBoardUpdate();
 }
 
 void Planner::finishSMED()
 {
+    for(auto task=_tasks.begin();task!=_tasks.end();++task)
+        for(auto child=task->children.begin();child!=task->children.end();++child)
+            if(child->kanbanObj.kanban=="SMED" && child->running){
+                child->kanbanObj.reference="SMED";
+                child->kanbanObj.sebango="SMED";
+                //_tasks[getCurrentHourNum()].children.append(*child);
+                child->kanbanObj.partWorkContent=child->addedTime.elapsed()/60000;
+                this->planBoardUpdate();
+            }
+
+    //TODO: если смед в следующих часах.
     TaskInfo task = TaskInfo();
     kanbanItem kanbanObj;
-    kanbanObj.kanban="finishSMED";
+    kanbanObj.kanban="SMED";
     kanbanObj.reference="SMED";
     kanbanObj.sebango="SMED";
     task.kanbanObj=kanbanObj;
-    for(auto task=_tasks.begin();task!=_tasks.end();++task)
-        for(auto child=task->children.begin();child!=task->children.end();++child)
-            if(child->kanbanObj.kanban=="startSMED"){
-                kanbanObj.partWorkContent=child->addedTime.elapsed()/60000;
-                child->kanbanObj=kanbanObj;
-            }
-    //TODO: если смед в следующих часах.
+    task.done=true;
+    task.parent=&_tasks[getCurrentHourNum()];
+    _tasks[getCurrentHourNum()].children.append(task);
     this->planBoardUpdate();
 }
 
@@ -208,10 +222,32 @@ void Planner::planBoardUpdate(/*bool forceUpdate*/)
         //qDebug()<<3.1<<"task->children.count()"<<task->children.count();
         int j=0;
         while(_tasks.at(i).children.count()>j)
-            if(!_tasks.at(i).children.at(j).done && !_tasks.at(i).children.at(j).canceled)
+            if(!_tasks.at(i).children.at(j).running &&
+                    !_tasks.at(i).children.at(j).done &&
+                    !_tasks.at(i).children.at(j).canceled){
+                    _tasks[i].children[j].parent=nullptr;
                 _notAttachedTasks.append(_tasks[i].children.takeAt(j));
-            else
+            }
+            else {
+                if (_tasks.at(i).children.at(j).running){
+                    int taskWorkContent=_tasks[i].children[j].taskWorkContent-_tasks.at(i).children.at(j).addedTime.elapsed()/60000;
+                    if((_tasks[i].taskWorkContent+taskWorkContent)<60){
+                        _tasks[i].children[j].taskWorkContent+=taskWorkContent;
+                        _tasks[i].taskWorkContent+=taskWorkContent;
+                    } else {
+                        _tasks[i].children[j].taskWorkContent+=(60-_tasks[i].taskWorkContent);
+                        _tasks[i].taskWorkContent=60;
+                        _tasks[i].children[j].running=false;
+                        _tasks[i].children[j].done=true;
+                        taskWorkContent=(_tasks[i].taskWorkContent+taskWorkContent)-60;
+                        TaskInfo newTask(_tasks.at(i).children.at(j));
+                        newTask.taskWorkContent=taskWorkContent;
+                        newTask.parent=nullptr;
+                        _notAttachedTasks.append(newTask);
+                    }
+                }
                 j++;
+            }
         //qDebug()<<"task->children.count()"<<task->children.count();
     }
 //    qDebug()<<4;
@@ -242,14 +278,18 @@ void Planner::planBoardUpdate(/*bool forceUpdate*/)
                 if(_tasks.at(hour).children.at(i).taskWorkContent<hourValue)
                     hourValue-=_tasks.at(hour).children.at(i).taskWorkContent;
 //        qDebug()<<"hour"<<hour<<"hourValue2"<<hourValue;
-        while(!_notAttachedTasks.isEmpty() and hourValue>_notAttachedTasks.first().taskWorkContent){
+        while(!_notAttachedTasks.isEmpty()){
+            if(hourValue>_notAttachedTasks.first().taskWorkContent){
 //                qDebug()<<"hour"<<hour<<"hourValue3"<<hourValue<<"_tasks.count()"<<_tasks.count();
                 hourValue-=_notAttachedTasks.first().taskWorkContent;
 //                qDebug()<<"hour"<<hour<<"hourValue4"<<hourValue<<"_notAttachedTasks.first().taskWorkContent"
 //                        <<_notAttachedTasks.first().taskWorkContent;
                 _tasks[hour].taskWorkContent+=_notAttachedTasks.first().taskWorkContent;
                 _notAttachedTasks[0].parent=&_tasks[hour];
+                //qDebug()<<"_notAttachedTasks[0].kanbanObj.reference"<<
+                //           _notAttachedTasks[0].kanbanObj.reference<<"hour"<<hour;
                 _tasks[hour].children.append(_notAttachedTasks.takeFirst());
+            }
         }
 //                <<"_tasks.at("<<hour<<").taskWorkContent"
 //                <<_tasks.at(hour).taskWorkContent;
@@ -320,6 +360,7 @@ void Planner::addKnownTask(const QByteArray &sebango,int hourNum,int workContent
     task.kanbanObj=kanbanObj;
     task.taskWorkContent=workContent;
     task.done=true;
+    task.parent=&_tasks[hourNum];
     _tasks[hourNum].children.append(task);
     this->planBoardUpdate();
     qDebug()<<"addKnownTask finish";
@@ -759,12 +800,12 @@ QModelIndex Planner::parent(const QModelIndex &child) const
     }
 
     TaskInfo* childInfo = static_cast<TaskInfo*>(child.internalPointer());
-    if (childInfo == 0) {
+    if (childInfo == nullptr) {
         return QModelIndex();
     }
-    Q_ASSERT(childInfo != 0);
+    Q_ASSERT(childInfo != nullptr);
     TaskInfo* parentInfo = childInfo->parent;
-    if (parentInfo != 0) {
+    if (parentInfo != nullptr) {
         return createIndex(findRow(parentInfo), COL_PERIOD, parentInfo);
     }
     else {
@@ -774,7 +815,7 @@ QModelIndex Planner::parent(const QModelIndex &child) const
 
 int Planner::findRow(const TaskInfo *TaskInfo) const
 {
-    Q_ASSERT(TaskInfo != 0);
+    Q_ASSERT(TaskInfo != nullptr);
     const TaskInfoList& parentInfoChildren = TaskInfo->parent != 0 ? TaskInfo->parent->children: _tasks;
     TaskInfoList::const_iterator position = qFind(parentInfoChildren, *TaskInfo);
     Q_ASSERT(position != parentInfoChildren.end());
@@ -785,7 +826,7 @@ bool Planner::hasChildren(const QModelIndex &parent) const
 {
     if (parent.isValid()) {
         const TaskInfo* parentInfo = static_cast<const TaskInfo*>(parent.internalPointer());
-        Q_ASSERT(parentInfo != 0);
+        Q_ASSERT(parentInfo != nullptr);
         if (!parentInfo->mapped) {
             return !parentInfo->children.isEmpty();
         }
@@ -800,7 +841,7 @@ bool Planner::canFetchMore(const QModelIndex &parent) const
     }
 
     const TaskInfo* parentInfo = static_cast<const TaskInfo*>(parent.internalPointer());
-    Q_ASSERT(parentInfo != 0);
+    Q_ASSERT(parentInfo != nullptr);
     return !parentInfo->mapped;
 }
 
@@ -808,7 +849,7 @@ void Planner::fetchMore(const QModelIndex &parent)
 {
     Q_ASSERT(parent.isValid());
     TaskInfo* parentInfo = static_cast<TaskInfo*>(parent.internalPointer());
-    Q_ASSERT(parentInfo != 0);
+    Q_ASSERT(parentInfo != nullptr);
     Q_ASSERT(!parentInfo->mapped);
     if (parentInfo->children.count()>0)
         parentInfo->mapped=true;
@@ -859,6 +900,7 @@ void Planner::taskDone(TaskInfo* taskInfo)
     taskInfo->done=true;
     taskInfo->canceled=false;
     if (taskInfo->curHour!=getCurrentHourNum()){
+        taskInfo->parent=&_tasks[getCurrentHourNum()];
         _tasks[taskInfo->curHour].children.removeOne(*taskInfo);
         _tasks[getCurrentHourNum()].children.append(*taskInfo);
     }
@@ -886,6 +928,7 @@ bool Planner::kanbanProdused(const QByteArray &kanban)
         task.kanbanObj=kanbanMap.value(kanban);
     task.taskWorkContent=task.kanbanObj.partWorkContent*task.kanbanObj.countParts;
     task.done=true;
+    task.parent=&_tasks[getCurrentHourNum()];
     _tasks[getCurrentHourNum()].children.append(task);
     this->planBoardUpdate();
 

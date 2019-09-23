@@ -27,6 +27,7 @@ public:
         addedTime(other.addedTime),
         countScrap(other.countScrap),
         countOpertators(other.countOpertators),
+        running(other.running),
         done(other.done),
         canceled(other.canceled),
         scrapNote(other.scrapNote),
@@ -44,6 +45,7 @@ public:
         addedTime(QTime::currentTime()),
         countScrap(0),
         countOpertators(1),
+        running(false),
         done(false),
         canceled(false),
         scrapNote(QString()),
@@ -61,6 +63,7 @@ public:
         addedTime(QTime::currentTime()),
         countScrap(0),
         countOpertators(1),
+        running(false),
         done(false),
         canceled(false),
         scrapNote(QString()),
@@ -71,12 +74,16 @@ public:
         curHour(-1),                       //hour 0-23. -1-task
         children(QVector<TaskInfo>())
     {}
+
+    //TODO:overload children.append
+
 //    TaskInfo(const TaskInfo& taskInfo):
 //        kanbanObj(taskInfo.kanbanObj),
 //        parent(taskInfo.parent),
 //        addedTime(taskInfo.addedTime),
 //        countScrap(taskInfo.countScrap),
 //        countOpertators(taskInfo.countOpertators),
+//        running(taskInfo.running),
 //        done(taskInfo.done),
 //        scrapNote(taskInfo.scrapNote),
 //        mapped(taskInfo.mapped),
@@ -94,6 +101,7 @@ public:
         Q_ASSERT(!r || this->kanbanObj.kanban == another.kanbanObj.kanban);
         Q_ASSERT(!r || this->taskWorkContent == another.taskWorkContent);
         Q_ASSERT(!r || this->countScrap == another.countScrap);
+        Q_ASSERT(!r || this->running == another.running);
         Q_ASSERT(!r || this->done == another.done);
         Q_ASSERT(!r || this->canceled == another.canceled);
         Q_ASSERT(!r || this->scrapNote == another.scrapNote);
@@ -108,7 +116,8 @@ public:
 
     bool operator <(const TaskInfo& another) const
     {
-        bool r = this->addedTime < another.addedTime;
+        bool r = (!this->running and !another.running and (this->addedTime < another.addedTime)) or
+                  (this->running and !another.running);
         return r;
     }
 
@@ -126,6 +135,7 @@ public:
     int taskWorkContent;
     int countScrap;
     int countOpertators;
+    bool running;
     bool done;
     bool canceled;
     QString scrapNote;

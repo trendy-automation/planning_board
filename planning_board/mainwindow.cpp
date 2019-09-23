@@ -72,8 +72,9 @@ MainWindow::MainWindow(QAbstractItemModel *model, QWidget *parent) :
 
     QWidget *frame = new QWidget(this);
     frame->setGeometry(0, 0, 141, 51);
+    frame->setStyleSheet("background-image: url(:/logo.png)");
     //frame->setStyleSheet("background-image: url(:/logo.jpg)");
-    frame->setStyleSheet(QString("background-image: url(%1/logo.jpg)").arg(qApp->applicationDirPath()));
+    //frame->setStyleSheet(QString("background-image: url(%1/logo.jpg)").arg(qApp->applicationDirPath()));
     QAction *logoPlace = this->ui->menuBar->addAction("             ");
     QAction *action1 = this->ui->menuBar->addAction("Развернуть текущий час");
     this->connect(action1, &QAction::triggered, [this,model,planner,action1](){

@@ -30,3 +30,7 @@ git commit -m "First commit"
 git remote add origin https://github.com/trendy-automation/planning_board.git
 #git push --set-upstream origin master
 git push -u origin master
+
+#update repository
+cd /d/Docs/Qt projects/planning_board/source/planning_board
+git push
