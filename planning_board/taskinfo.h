@@ -44,7 +44,8 @@ public:
         parent(0),
         addedTime(QTime::currentTime()),
         countScrap(0),
-        countOpertators(1),
+        //TODO move countOpertators to excel
+        countOpertators(3),
         running(false),
         done(false),
         canceled(false),

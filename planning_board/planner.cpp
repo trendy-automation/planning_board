@@ -123,14 +123,6 @@ void Planner::parseBuffer(const QByteArray &kanban)
         readExcelData();
         return;
     }
-    if(kanban=="startSMED"){
-        startSMED();
-        return;
-    }
-    if(kanban=="finishSMED"){
-        finishSMED();
-        return;
-    }
     addKanban(kanban);
 if (kanban.startsWith("12345678"))
     
@@ -181,6 +173,7 @@ void Planner::finishSMED()
     task.kanbanObj=kanbanObj;
     task.done=true;
     task.parent=&_tasks[getCurrentHourNum()];
+    //TODO move smed workcontent to excel
     task.taskWorkContent=600;
     _tasks[getCurrentHourNum()].children.append(task);
     this->planBoardUpdate();
@@ -344,6 +337,7 @@ void Planner::startNextShift()
         newTask.curHour=startHour+i;
         _tasks.append(newTask);
     }
+    //TODO move KnownTasks to excel
     switch (startHour) {
     case 0:
         addKnownTask("ТОП 5",1-1,15*60);
@@ -933,6 +927,14 @@ void Planner::taskCancel(TaskInfo* taskInfo)
 
 bool Planner::kanbanProdused(const QByteArray &kanban)
 {
+    if(kanban=="startSMED"){
+        startSMED();
+        return;
+    }
+    if(kanban=="finishSMED"){
+        finishSMED();
+        return;
+    }
     for(auto task=_tasks.begin();task!=_tasks.end();++task)
         for(auto child=task->children.begin();child!=task->children.end();++child)
             if(!child->done && !child->canceled && child->kanbanObj.kanban==kanban){
