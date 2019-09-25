@@ -48,8 +48,8 @@ Planner::Planner(QObject *parent) : QAbstractItemModel(parent)
 //        //qDebug()<<"hourNumber"<<hourNumber<<"doneHour"<<doneHour;
 //        for(int i=0;i<_tasks.at(doneHour)->children.count();++i)
 //            _tasks.at(doneHour)->children.at(i).setDone();
-        //qDebug()<<"hourNumber"<<hourNumber;
-        if(hourNumber==0){
+        qDebug()<<"hourNumber"<<hourNumber;
+        if(hourNumber==1){
             //save excel report
             saveExcelReport(QDate().currentDate().toString(
                                 QString("BoardReport_yyyy_MMMM_dd_%1.xlsx").arg(ct.hour())));
@@ -174,7 +174,7 @@ void Planner::finishSMED()
     task.done=true;
     task.parent=&_tasks[getCurrentHourNum()];
     //TODO move smed workcontent to excel
-    task.taskWorkContent=600;
+    task.taskWorkContent=200;
     _tasks[getCurrentHourNum()].children.append(task);
     this->planBoardUpdate();
 }
@@ -200,7 +200,7 @@ void Planner::planBoardUpdate(/*bool forceUpdate*/)
 //    qDebug()<<"hourValue"<<hourValue<<"ct.minute()*60"<<ct.minute()*60<<"ct.second()"<<ct.second();
 
     int hourNumber=getCurrentHourNum();
-//    qDebug()<<1<<"startHour"<<startHour<<"hourNumber"<<hourNumber;
+   //qDebug()<<1<<"lastHour"<<lastHour<<"hourNumber"<<hourNumber;
     //Shift change - clear tasks
     if(lastHour!=hourNumber || _tasks.isEmpty()){
         if(hourNumber==6||hourNumber==15||hourNumber==0||_tasks.isEmpty()){
@@ -372,7 +372,7 @@ void Planner::addKnownTask(const QByteArray &sebango,int hourNum,int workContent
     task.done=true;
     task.parent=&_tasks[hourNum];
     _tasks[hourNum].children.append(task);
-    this->planBoardUpdate();
+    //this->planBoardUpdate();
     qDebug()<<"addKnownTask finish";
 }
 
@@ -868,17 +868,25 @@ void Planner::fetchMore(const QModelIndex &parent)
 
 bool Planner::saveExcelReport(const QString &fileName)
 {
-    qDebug()<<"saveExcelReport"<<"fileName";
+    qDebug()<<"saveExcelReport"<<fileName;
     Document *xlsx= new Document(fileName);
-    for(int j=0;j<headers.count();j++)
+    qDebug()<<1;
+    for(int j=0;j<headers.count();j++){
+        qDebug()<<2;
         xlsx->write(1,j+1,headers.value(headers.keys().at(j)));
+    }
     for(int j=0;j<headers.count();j++)
         for(int i=0;i<_tasks.count();i++)
-            if(j==Columns::COL_NOTES)
+            if(j==Columns::COL_NOTES){
+                qDebug()<<3;
 //                xlsx->write(i+2,j+1,lostTimeNoteList.at(data(createIndex(i,j)).toInt()));
                 xlsx->write(i+2,j+1,_tasks.at(i).taskNote);
-            else
-                xlsx->write(i+2,j+1,data(createIndex(i,j)));
+            } else {
+                qDebug()<<4<<data(createIndex(i,j),Qt::DisplayRole);
+                xlsx->write(i+2,j+1,data(createIndex(i,j),Qt::DisplayRole));
+                qDebug()<<5;
+            }
+    qDebug()<<"saveExcelReport"<<"done";
     return xlsx->saveAs(fileName);
 }
 
@@ -927,13 +935,13 @@ void Planner::taskCancel(TaskInfo* taskInfo)
 
 bool Planner::kanbanProdused(const QByteArray &kanban)
 {
-    if(kanban=="startSMED"){
+    if(kanban=="startSMED "){
         startSMED();
-        return;
+        return false;
     }
     if(kanban=="finishSMED"){
         finishSMED();
-        return;
+        return false;
     }
     for(auto task=_tasks.begin();task!=_tasks.end();++task)
         for(auto child=task->children.begin();child!=task->children.end();++child)
