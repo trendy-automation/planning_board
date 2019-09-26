@@ -56,12 +56,12 @@ void ComboBoxDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionV
 void ComboBoxDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
   QStyleOptionViewItem myOption = option;
-  myOption.text = Items[index.data().toInt()].c_str();
+//  myOption.text = Items[index.data().toInt()].c_str();
   const QWidget* const widget = option.widget;
   QStyle* const style = widget ? widget->style() : QApplication::style();
   QStyleOptionComboBox cbOption;
   cbOption.rect = option.rect;
-  cbOption.currentText = index.data(Qt::DisplayRole).toString();
+//  cbOption.currentText = index.data(Qt::DisplayRole).toString();
   cbOption.direction = option.direction;
   cbOption.currentIcon = index.data(Qt::DecorationRole).value<QIcon>();
   cbOption.fontMetrics = option.fontMetrics;
@@ -82,7 +82,6 @@ void ComboBoxDelegate::paint(QPainter *painter, const QStyleOptionViewItem &opti
             style->drawComplexControl(QStyle::CC_ComboBox, &cbOption, painter, widget);
             style->drawControl(QStyle::CE_ComboBoxLabel, &cbOption, painter, widget);
       }
-//  }
 
       painter->save();
       painter->setPen(QColor(Qt::black));

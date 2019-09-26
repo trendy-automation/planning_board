@@ -48,7 +48,7 @@ Planner::Planner(QObject *parent) : QAbstractItemModel(parent)
 //        //qDebug()<<"hourNumber"<<hourNumber<<"doneHour"<<doneHour;
 //        for(int i=0;i<_tasks.at(doneHour)->children.count();++i)
 //            _tasks.at(doneHour)->children.at(i).setDone();
-        qDebug()<<"hourNumber"<<hourNumber;
+//        qDebug()<<"hourNumber"<<hourNumber;
         if(hourNumber==1){
             //save excel report
             saveExcelReport(QDate().currentDate().toString(
@@ -68,7 +68,7 @@ Planner::Planner(QObject *parent) : QAbstractItemModel(parent)
     setProperty("taskNoteList",taskNoteList);
     setProperty("scrapNoteList",scrapNoteList);
 
-    startSMED();
+    saveExcelReport("test_report");
 }
 
 
@@ -112,6 +112,12 @@ bool Planner::readExcelData(const QString &fileName)
         i++;
         note = xlsx->read(i,1).toByteArray();
     }
+    if(!kanbanMap.isEmpty()){
+        avgWorkContent=0;
+        for(auto kanban=kanbanMap.begin();kanban!=kanbanMap.end();++kanban)
+            avgWorkContent+=kanban.value().partWorkContent*kanban.value().countParts;
+        avgWorkContent=avgWorkContent/kanbanMap.count();
+    }
     return ok;
 }
 
@@ -153,15 +159,18 @@ void Planner::startSMED()
 }
 
 void Planner::finishSMED()
-{
+{        
     for(auto task=_tasks.begin();task!=_tasks.end();++task)
         for(auto child=task->children.begin();child!=task->children.end();++child)
             if(child->kanbanObj.kanban=="SMED" && child->running){
                 child->kanbanObj.reference="SMED";
                 child->kanbanObj.sebango="SMED";
+                child->running=false;
+                child->done=true;
                 //_tasks[getCurrentHourNum()].children.append(*child);
                 child->kanbanObj.partWorkContent=child->addedTime.elapsed()/60000;
                 this->planBoardUpdate();
+                return;
             }
 
     //TODO: если смед в следующих часах.
@@ -328,11 +337,12 @@ void Planner::startNextShift()
 {
     int hoursCount=(QTime::currentTime().hour()<6)?6:9;
     int startHour=getStartHourNum();
-    for(auto task=_tasks.begin();task!=_tasks.end();++task)
+    for(auto task=_tasks.begin();task!=_tasks.end();++task){
         for(auto child=task->children.begin();child!=task->children.end();++child)
-            if(!child->done && !child->canceled)
-                task->children.removeOne(*child);
-        for(int i=0;i<hoursCount;++i){
+            task->children.removeOne(*child);
+        _tasks.removeOne(*task);
+    }
+    for(int i=0;i<hoursCount;++i){
         TaskInfo newTask;
         newTask.curHour=startHour+i;
         _tasks.append(newTask);
@@ -360,6 +370,15 @@ void Planner::startNextShift()
     default:
         qDebug()<<"hourNumber error";
     }
+    int wc=0;
+    for(auto task=_tasks.begin();task!=_tasks.end();++task){
+        int wc = 0;
+        for(auto child=task->children.begin();child!=task->children.end();++child)
+            wc+=child->taskWorkContent;
+        task->taskWorkContent=wc;
+        //task->plan=(3600-wc)/avgWorkContent
+    }
+
 }
 
 void Planner::addKnownTask(const QByteArray &sebango,int hourNum,int workContent)
@@ -479,10 +498,10 @@ QVariant Planner::data(const QModelIndex &index, int role) const
         int startHour=getStartHourNum();
         switch(col){
         case Columns::COL_PERIOD:
-            return taskInfo->curHour>0 ? QString("%1.00-\n%2.00").arg(startHour+row).arg((startHour+row+1)%24) : QString();
+            return taskInfo->parent ? QString("%1.00-\n%2.00").arg(startHour+row).arg((startHour+row+1)%24) : QString();
         case Columns::COL_PLAN:{
             int plan=0;
-            if(taskInfo->curHour>0)
+            if(taskInfo->parent)
                 for(int i=0;i<taskInfo->children.count();++i)
                     plan+=taskInfo->children.at(i).kanbanObj.countParts;
             else
@@ -491,7 +510,7 @@ QVariant Planner::data(const QModelIndex &index, int role) const
         }
         case Columns::COL_ACTUAL:{
             int act=0;
-            if(taskInfo->curHour>0)
+            if(taskInfo->parent)
                 for(int i=0;i<taskInfo->children.count();++i)
                     if(taskInfo->children.at(i).done)
                         act+=taskInfo->children.at(i).kanbanObj.countParts;
@@ -502,7 +521,7 @@ QVariant Planner::data(const QModelIndex &index, int role) const
         }
         case Columns::COL_SEBANGO:{
             QString ref;
-            if(taskInfo->curHour>0) {
+            if(taskInfo->parent) {
                 QMap<QByteArray,int> sebangoMap;
                 for(int i=0;i<taskInfo->children.count();++i)
                     if(sebangoMap.contains(taskInfo->children.at(i).kanbanObj.sebango))
@@ -527,9 +546,9 @@ QVariant Planner::data(const QModelIndex &index, int role) const
             return ref;
         }
         case Columns::COL_LOSTTIME:{
-            if(taskInfo->parent)
-                return 0;
-            else
+//            if(taskInfo->parent)
+//                return 0;
+//            else
                 return taskInfo->lostTime;
         }
         case Columns::COL_NOTES:{
@@ -882,9 +901,9 @@ bool Planner::saveExcelReport(const QString &fileName)
 //                xlsx->write(i+2,j+1,lostTimeNoteList.at(data(createIndex(i,j)).toInt()));
                 xlsx->write(i+2,j+1,_tasks.at(i).taskNote);
             } else {
-                qDebug()<<4<<data(createIndex(i,j),Qt::DisplayRole);
-                xlsx->write(i+2,j+1,data(createIndex(i,j),Qt::DisplayRole));
-                qDebug()<<5;
+                //qDebug()<<4<<data(createIndex(i,j),Qt::DisplayRole);
+                //xlsx->write(i+2,j+1,data(createIndex(i,j),Qt::DisplayRole));
+                //qDebug()<<5;
             }
     qDebug()<<"saveExcelReport"<<"done";
     return xlsx->saveAs(fileName);

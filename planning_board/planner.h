@@ -86,6 +86,7 @@ private:
     TaskInfoList _tasks;
     TaskInfoList _notAttachedTasks;
     int lastHour = -1;
+    int avgWorkContent=100;
 
     QMap<QByteArray,kanbanItem> kanbanMap;
     QMap<Columns,QString> headers;
