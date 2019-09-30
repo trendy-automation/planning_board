@@ -46,9 +46,9 @@ void Plc_station::kanbanDeclError(const QByteArray &kanbanNumber)
 void Plc_station::StartTo(const QByteArray &LocalAddress, const QByteArray &RemoteAddress, word LocTsap, word RemTsap)
 {
     Partner->StartTo(LocalAddress.constData(), RemoteAddress.constData(), LocTsap, RemTsap);
-    qDebug() << QString("PLC_PARTNER %1 started from %2(%3) to %4(%5)")
+    qDebug((QString("PLC_PARTNER %1 started from %2(%3) to %4(%5)")
                 .arg(this->objectName()).arg(QString(LocalAddress)).arg(QString::number(LocTsap,16))
-                .arg(QString(RemoteAddress)).arg(QString::number(RemTsap,16));
+                .arg(QString(RemoteAddress)).arg(QString::number(RemTsap,16))).toLocal8Bit());
     //Plc_station *MyStation = (Plc_station *) this;
     //emit MyStation->reqDeclKanban(1,"159800000","RUTYABC018","initial",11);
 }

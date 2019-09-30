@@ -20,6 +20,14 @@ Q_DECLARE_METATYPE(TaskInfo)
 Q_DECLARE_METATYPE(TaskInfoList)
 //Q_DECLARE_METATYPE(QVector<TaskInfo>)
 
+//friend QDataStream &operator<<(QDataStream &out, const TaskInfo& rhs) {
+//   out.writeRawData(reinterpret_cast<const char*>(&rhs), sizeof(rhs));
+//   return out;
+//}
+//friend QDataStream &operator>>(QDataStream &in, TaskInfo &rhs) {
+//   in.readRawData(reinterpret_cast<char*>(&rhs), sizeof(rhs));
+//   return in;
+//}
 
 int main(int argc, char *argv[])
 {

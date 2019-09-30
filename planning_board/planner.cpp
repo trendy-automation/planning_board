@@ -145,8 +145,9 @@ if (kanban.startsWith("12345678"))
             break;
         case Planner::SC_NOTE_SCRAP: //1234567802
             break;
-        default:
+        default:{
             qDebug()<<"Anknown service comand";
+        }
     }
 
 }
@@ -204,20 +205,26 @@ void Planner::addKanban(const QByteArray &kanban)
         qDebug()<<"kanban"<<QString(kanban);
         return;
     }
-        else qDebug()<<"Unknown command"<<QString(kanban);
+        else {
+            qDebug()<<"Unknown command"<<QString(kanban);
+    }
 }
 
 void Planner::saveTasks(){
     QSettings settings("tasks.tmp", QSettings::IniFormat);
     QByteArray encodedData;
     QDataStream stream(&encodedData, QIODevice::WriteOnly);
-    stream << *TaskInfo;
-    TaskInfo* data2 = nullptr;
-    while (!stream.atEnd()) {
-       stream >> *data2;
+    for(auto task=_tasks.begin();task!=_tasks.end();++task){
+        qDebug()<<task->kanbanObj.reference;
+        stream << task;
     }
+//    TaskInfoList* data2 = nullptr;
+//    while (!stream.atEnd()) {
+//       stream >> *data2;
+//    }
 
-    settings.setValue("_tasks", QVariant::fromValue<TaskInfo>(_tasks.at(0)));
+    settings.setValue("tasks",stream);
+    //settings.setValue("_tasks",stream);
 }
 
 void Planner::planBoardUpdate(/*bool forceUpdate*/)
@@ -398,8 +405,9 @@ void Planner::startNextShift()
         addKnownTask("Обед",18-startHour,30*60);
         addKnownTask("Перерыв",20-startHour,15*60);
         break;
-    default:
+    default:{
         qDebug()<<"hourNumber error";
+        }
     }
     int wc=0;
     for(auto task=_tasks.begin();task!=_tasks.end();++task){

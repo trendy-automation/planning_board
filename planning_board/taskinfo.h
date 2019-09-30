@@ -80,15 +80,6 @@ public:
         children(QVector<TaskInfo>())
     {}
 
-    QDataStream &operator<<(QDataStream &out, const TaskInfo& rhs) {
-       out.writeRawData(reinterpret_cast<const char*>(&rhs), sizeof(rhs));
-       return out;
-    }
-    QDataStream &operator>>(QDataStream &in, TaskInfo &rhs) {
-       in.readRawData(reinterpret_cast<char*>(&rhs), sizeof(rhs));
-       return in;
-    }
-
 
     //TODO:overload children.append
 
@@ -159,9 +150,28 @@ public:
     QString taskNote;       //hour
     int curHour;                //hour 0-23. -1-task
 
+
+    friend QDataStream &operator<<(QDataStream &out, const TaskInfo& rhs) {
+       out.writeRawData(reinterpret_cast<const char*>(&rhs), sizeof(rhs));
+       return out;
+    }
+    friend QDataStream &operator>>(QDataStream &in, TaskInfo &rhs) {
+       in.readRawData(reinterpret_cast<char*>(&rhs), sizeof(rhs));
+       return in;
+    }
 };
 
 typedef QVector<TaskInfo> TaskInfoList;
+
+
+//QDataStream &operator%(QDataStream &out, const TaskInfoList& rhs) {
+//   out.writeRawData(reinterpret_cast<const char*>(&rhs), sizeof(rhs));
+//   return out;
+//}
+//QDataStream &operator$(QDataStream &in, TaskInfoList &rhs) {
+//   in.readRawData(reinterpret_cast<char*>(&rhs), sizeof(rhs));
+//   return in;
+//}
 
 
 
