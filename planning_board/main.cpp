@@ -15,14 +15,22 @@
 #include <iostream>
 
 
+//typedef QVector<TaskInfo> TaskInfoList;
+Q_DECLARE_METATYPE(TaskInfo)
+Q_DECLARE_METATYPE(TaskInfoList)
+//Q_DECLARE_METATYPE(QVector<TaskInfo>)
+
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     MessageHandler *msgHandler = new MessageHandler;
     qDebug()<<"MessageHandler finished";
-//    qRegisterMetaType<TaskInfoList>("TaskInfoList");
-//    qRegisterMetaType<TaskInfo>("TaskInfo>");
+    qRegisterMetaTypeStreamOperators<TaskInfo>("TaskInfo");
+    qRegisterMetaType<TaskInfoList>("TaskInfoList");
+    //qRegisterMetaType<QVector<TaskInfo>>("TaskInfoList");
+    qRegisterMetaType<TaskInfo>("TaskInfo>");
+    qRegisterMetaType<QVector<TaskInfo>>("QVector<TaskInfo>");
     qRegisterMetaType<QVector<int>>("QVector<int>");
     qRegisterMetaType<kanbanItem>("kanbanItem");
     Planner *planner = new Planner();

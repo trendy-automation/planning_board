@@ -19,11 +19,21 @@
 #include <QSize>
 #include <QFont>
 #include <QFontMetrics>
+#include <QSettings>
+
+
+Q_DECLARE_METATYPE(TaskInfo)
+Q_DECLARE_METATYPE(QVector<TaskInfo>)
+
+
+
 
 Planner::Planner(QObject *parent) : QAbstractItemModel(parent)
     //,_metaProvider(new QFileIconProvider())
 
 {
+    qRegisterMetaType<TaskInfo>("TaskInfo>");
+    qRegisterMetaType<QVector<TaskInfo>>("QVector<TaskInfo>");
     headers.insert(COL_PERIOD,"Период");
     headers.insert(COL_PLAN,"План");
     headers.insert(COL_ACTUAL,"Факт");
@@ -31,7 +41,7 @@ Planner::Planner(QObject *parent) : QAbstractItemModel(parent)
     headers.insert(COL_LOSTTIME,"Потерянное\nвремя");
     headers.insert(COL_SCRAP,"Брак");
     headers.insert(COL_NOTES,"Замечания");
-    headers.insert(COL_OPERATORS,"Количество\nоператоров");
+//    headers.insert(COL_OPERATORS,"Количество\nоператоров");
     headers.insert(COL_STATUS,"Статус");
     planBoardUpdate();
     this->readExcelData();
@@ -49,12 +59,7 @@ Planner::Planner(QObject *parent) : QAbstractItemModel(parent)
 //        for(int i=0;i<_tasks.at(doneHour)->children.count();++i)
 //            _tasks.at(doneHour)->children.at(i).setDone();
 //        qDebug()<<"hourNumber"<<hourNumber;
-        if(hourNumber==1){
-            //save excel report
-            saveExcelReport(QDate().currentDate().toString(
-                                QString("BoardReport_yyyy_MMMM_dd_%1.xlsx").arg(ct.hour())));
             //_tasks.clear();
-        }
         this->planBoardUpdate();
     });
     QTime ct = QTime::currentTime();
@@ -123,6 +128,7 @@ bool Planner::readExcelData(const QString &fileName)
 
 void Planner::parseBuffer(const QByteArray &kanban)
 {
+    qDebug()<<QString(kanban);
     //TODO service commands
     if(kanban=="refresh_excel"){
         qDebug()<<"refresh_excel";
@@ -190,15 +196,28 @@ void Planner::finishSMED()
 
 void Planner::addKanban(const QByteArray &kanban)
 {
-    qDebug()<<"kanban"<<kanban;
     if(kanbanMap.contains(kanban)){
         TaskInfo task = TaskInfo(kanbanMap.value(kanban));
         task.taskWorkContent=task.kanbanObj.countParts*task.kanbanObj.partWorkContent;
         _notAttachedTasks.append(task);
         this->planBoardUpdate();
+        qDebug()<<"kanban"<<QString(kanban);
         return;
     }
-        else qDebug()<<"Unknown command"<<kanban;
+        else qDebug()<<"Unknown command"<<QString(kanban);
+}
+
+void Planner::saveTasks(){
+    QSettings settings("tasks.tmp", QSettings::IniFormat);
+    QByteArray encodedData;
+    QDataStream stream(&encodedData, QIODevice::WriteOnly);
+    stream << *TaskInfo;
+    TaskInfo* data2 = nullptr;
+    while (!stream.atEnd()) {
+       stream >> *data2;
+    }
+
+    settings.setValue("_tasks", QVariant::fromValue<TaskInfo>(_tasks.at(0)));
 }
 
 void Planner::planBoardUpdate(/*bool forceUpdate*/)
@@ -214,6 +233,7 @@ void Planner::planBoardUpdate(/*bool forceUpdate*/)
     if(lastHour!=hourNumber || _tasks.isEmpty()){
         if(hourNumber==6||hourNumber==15||hourNumber==0||_tasks.isEmpty()){
             //start next shift
+            _tasks.clear();
             startNextShift();
         } else {
             for(int j=0;j<_tasks.at(lastHour).children.count();++j)
@@ -331,12 +351,23 @@ void Planner::planBoardUpdate(/*bool forceUpdate*/)
 ////                    <<_tasks.at(i).children.at(j).kanbanObj.kanban;
 //    for(int i=0;i<_notAttachedTasks.count();++i)
 //        qDebug()<<"_notAttachedTasks.at("<<i<<")"<<_notAttachedTasks.at(0).kanbanObj.kanban;
+
+    saveTasks();
 }
 
 void Planner::startNextShift()
 {
     int hoursCount=(QTime::currentTime().hour()<6)?6:9;
     int startHour=getStartHourNum();
+    //save excel report
+    if(!_tasks.isEmpty()){
+        int shiftNum=0;
+        if (startHour==0)  shiftNum=2;
+        if (startHour==6)  shiftNum=3;
+        if (startHour==15) shiftNum=1;
+        saveExcelReport(QDate().currentDate().toString(
+                            QString("Report_yyyy_MMMM_dd_%1_shift.xlsx").arg(shiftNum)));
+    }
     for(auto task=_tasks.begin();task!=_tasks.end();++task){
         for(auto child=task->children.begin();child!=task->children.end();++child)
             task->children.removeOne(*child);
@@ -498,22 +529,24 @@ QVariant Planner::data(const QModelIndex &index, int role) const
         int startHour=getStartHourNum();
         switch(col){
         case Columns::COL_PERIOD:
-            return taskInfo->parent ? QString("%1.00-\n%2.00").arg(startHour+row).arg((startHour+row+1)%24) : QString();
+            return (taskInfo->curHour>=0) ? QString("%1.00-\n%2.00").arg(startHour+row).arg((startHour+row+1)%24) : QString();
         case Columns::COL_PLAN:{
             int plan=0;
-            if(taskInfo->parent)
+            if(!taskInfo->parent)
                 for(int i=0;i<taskInfo->children.count();++i)
                     plan+=taskInfo->children.at(i).kanbanObj.countParts;
             else
                 plan=taskInfo->kanbanObj.countParts;
             return plan;
+            //TODO plan
         }
         case Columns::COL_ACTUAL:{
             int act=0;
-            if(taskInfo->parent)
+            if(!taskInfo->parent){
                 for(int i=0;i<taskInfo->children.count();++i)
                     if(taskInfo->children.at(i).done)
                         act+=taskInfo->children.at(i).kanbanObj.countParts;
+            }
             else
                 if(taskInfo->done)
                     act=taskInfo->kanbanObj.countParts;
@@ -521,16 +554,20 @@ QVariant Planner::data(const QModelIndex &index, int role) const
         }
         case Columns::COL_SEBANGO:{
             QString ref;
-            if(taskInfo->parent) {
+            if(!taskInfo->parent) {
                 QMap<QByteArray,int> sebangoMap;
-                for(int i=0;i<taskInfo->children.count();++i)
-                    if(sebangoMap.contains(taskInfo->children.at(i).kanbanObj.sebango))
-                        sebangoMap.insert(taskInfo->children.at(i).kanbanObj.sebango,
-                                           sebangoMap.value(taskInfo->children.at(i).kanbanObj.sebango)+
-                                            taskInfo->children.at(i).kanbanObj.countParts);
+                QVector<TaskInfo> children = taskInfo->children;
+                qSort(children.begin(), children.end(),
+                      [](const TaskInfo &t1,const TaskInfo &t2){return t1<t2;});
+
+                for(int i=0;i<children.count();++i)
+                    if(sebangoMap.contains(children.at(i).kanbanObj.sebango))
+                        sebangoMap.insert(children.at(i).kanbanObj.sebango,
+                                           sebangoMap.value(children.at(i).kanbanObj.sebango)+
+                                            children.at(i).kanbanObj.countParts);
                     else
-                        sebangoMap.insert(taskInfo->children.at(i).kanbanObj.sebango,
-                                           taskInfo->children.at(i).kanbanObj.countParts);
+                        sebangoMap.insert(children.at(i).kanbanObj.sebango,
+                                           children.at(i).kanbanObj.countParts);
                 for(int i=0;i<sebangoMap.count();++i){
                     if(sebangoMap.value(sebangoMap.keys().at(i))>1)
                         ref.append(sebangoMap.keys().at(i)).append(" x ")
@@ -575,22 +612,23 @@ QVariant Planner::data(const QModelIndex &index, int role) const
                 scrap=taskInfo->countScrap;
             return scrap;
         }
-        case Columns::COL_OPERATORS:{
-            QVariant countOpertators=0;
-            if(!taskInfo->parent)
-                countOpertators=taskInfo->countOpertators;
-            else
-                countOpertators="";
-            return countOpertators;
-        }
+//        case Columns::COL_OPERATORS:{
+//            QVariant countOpertators=0;
+//            if(!taskInfo->parent)
+//                countOpertators=taskInfo->countOpertators;
+//            else
+//                countOpertators="";
+//            return countOpertators;
+//        }
         case Columns::COL_STATUS:{
             int status=0;
             if(taskInfo->parent){
                 if(taskInfo->done)
                     status=1;
-                else
-                    if(taskInfo->canceled)
-                        status=2;
+                if(taskInfo->canceled)
+                    status=2;
+                if(taskInfo->running)
+                    status=3;
             }
             return statusList.at(status);
             }
@@ -709,12 +747,12 @@ bool Planner::setData(const QModelIndex & index, const QVariant & value, int rol
 //                taskInfo->children[0].countScrap=value.toInt();
               taskInfo->countScrap=value.toInt();
             //huck
-        case Columns::COL_OPERATORS:{
-            taskInfo->countOpertators=value.toInt();
-            planBoardUpdate();
-            qDebug()<<"planBoardUpdate();";
-            break;
-        }
+//        case Columns::COL_OPERATORS:{
+//            taskInfo->countOpertators=value.toInt();
+//            planBoardUpdate();
+//            qDebug()<<"planBoardUpdate();";
+//            break;
+//        }
         case Columns::COL_STATUS:
             switch (value.toInt()) {
             case 0: //in progress
@@ -777,17 +815,15 @@ Qt::ItemFlags Planner::flags(const QModelIndex & index) const
         case Columns::COL_NOTES:{
             //            if(taskInfo->lostTimeNotes.isEmpty()||
             //                    taskInfo->lostTimeNotes=="0")
-            if(!taskInfo->children.isEmpty())
-                flags=flags & ~Qt::ItemIsEnabled;
-            if(taskInfo->curHour<=hourNumber)
-                return flags | Qt::ItemIsEditable;
-            else
-                return flags & ~Qt::ItemIsEditable;
+            if(taskInfo->parent)
+               if(taskInfo->parent->curHour==hourNumber)
+                   flags | Qt::ItemIsEditable;
+            return flags & ~Qt::ItemIsEditable;
         }
-        case Columns::COL_OPERATORS:{
-            if(!taskInfo->parent)
-                return flags | Qt::ItemIsEditable;
-        }
+//        case Columns::COL_OPERATORS:{
+//            if(!taskInfo->parent)
+//                return flags | Qt::ItemIsEditable;
+//        }
         case Columns::COL_STATUS:{
             if(taskInfo->parent)
                 if(taskInfo->parent->curHour==hourNumber)
@@ -880,7 +916,7 @@ void Planner::fetchMore(const QModelIndex &parent)
     TaskInfo* parentInfo = static_cast<TaskInfo*>(parent.internalPointer());
     Q_ASSERT(parentInfo != nullptr);
     Q_ASSERT(!parentInfo->mapped);
-    if (parentInfo->children.count()>0)
+    if (!parentInfo->children.isEmpty())
         parentInfo->mapped=true;
 
 }
@@ -954,6 +990,7 @@ void Planner::taskCancel(TaskInfo* taskInfo)
 
 bool Planner::kanbanProdused(const QByteArray &kanban)
 {
+    qDebug()<<kanban;
     if(kanban=="startSMED "){
         startSMED();
         return false;

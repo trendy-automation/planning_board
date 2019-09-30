@@ -4,7 +4,7 @@
  // Callback shared between all partners
 void S7API ParDataIncoming(void *usrPtr, int opResult, longword R_ID, void *pData, int Size)
 {
-    qDebug()<<"ParDataIncoming opResult"<<opResult << "R_ID" << R_ID;
+    //qDebug()<<"ParDataIncoming opResult"<<opResult << "R_ID" << R_ID;
     Plc_station *MyStation = (Plc_station *) usrPtr;
     if (opResult==0){
         QByteArray data= QByteArray((const char *)pData, Size);
@@ -14,8 +14,10 @@ void S7API ParDataIncoming(void *usrPtr, int opResult, longword R_ID, void *pDat
 //                                      MyStation->getSapPass(R_ID),MyStation->getIdDevice());
         emit MyStation->dataReceived(data);
     }
-    else
+    else{
+        qDebug()<<"error";
         emit MyStation->error(opResult);
+    }
 }
 
 // Class implementation

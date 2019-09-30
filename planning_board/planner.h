@@ -11,6 +11,7 @@ QTXLSX_USE_NAMESPACE
 
 
 
+
 class Planner : public QAbstractItemModel
 {
     Q_OBJECT
@@ -42,7 +43,7 @@ public:
         COL_LOSTTIME,
         COL_NOTES,
         COL_SCRAP,
-        COL_OPERATORS,
+//        COL_OPERATORS,
         COL_STATUS
     };
     Q_ENUM(Columns)
@@ -81,8 +82,8 @@ private:
     void addKnownTask(const QByteArray &sebango,int hourNum,int workContent);
     void startSMED();
     void finishSMED();    
+    void saveTasks();
     //struct TaskInfo;
-    typedef QVector<TaskInfo> TaskInfoList;
     TaskInfoList _tasks;
     TaskInfoList _notAttachedTasks;
     int lastHour = -1;
@@ -93,7 +94,7 @@ private:
     QStringList taskNoteList;//=QStringList()<<""<<"Организационные \nпроблемы"<<"Нет тары"<<"Нет компонентов"
     //              <<"Доработка"<<"Поломка робота"<<"Поломка тетра"<<"Поломка другое";
     //QStringList actionsNoteList=QStringList()<<""<<"Готово"<<"Нет на литье"<<"Нет тары"<<"Нет BOP"<<"Отмена";
-    QStringList statusList=QStringList()<<""<<"Готово"<<"Отмена"; //1-готово 2-отмена
+    QStringList statusList=QStringList()<<""<<"Готово"<<"Отмена"<<"В процессе"; //1-готово 2-отмена
     //QStringList ResultsNoteList=QStringList()<<""<<;
     QStringList scrapNoteList;//=QStringList()<<""<<"Царапины"<<"Прожог";
     //QStringList serviceCommandsList=QStringList()<<"SCRAP"<<"LNOTE"<<"SNOTE";

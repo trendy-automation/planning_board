@@ -2,6 +2,10 @@
 #define TASKINFO_H
 #include <QVector>
 #include <QTime>
+#include <QDataStream>
+
+
+
 struct kanbanItem
 {
     int countParts;
@@ -22,26 +26,26 @@ class TaskInfo
 {
 public:
     TaskInfo(const TaskInfo &other):
-        kanbanObj(other.kanbanObj),
         parent(other.parent),
+        kanbanObj(other.kanbanObj),
         addedTime(other.addedTime),
         countScrap(other.countScrap),
         countOpertators(other.countOpertators),
         running(other.running),
+        mapped(other.mapped),
         done(other.done),
         canceled(other.canceled),
         scrapNote(other.scrapNote),
-        mapped(other.mapped),
         taskWorkContent(other.taskWorkContent),
         lostTime(other.lostTime),                      //hour
         taskNote(other.taskNote),          //hour
-        curHour(other.curHour),                       //hour 0-23. -1-task
-        children(other.children)
+        children(other.children),
+        curHour(other.curHour)                       //hour 0-23. -1-task
     {}
 
     TaskInfo():
         kanbanObj(kanbanItem()),
-        parent(0),
+        parent(nullptr),
         addedTime(QTime::currentTime()),
         countScrap(0),
         //TODO move countOpertators to excel
@@ -75,6 +79,16 @@ public:
         curHour(-1),                       //hour 0-23. -1-task
         children(QVector<TaskInfo>())
     {}
+
+    QDataStream &operator<<(QDataStream &out, const TaskInfo& rhs) {
+       out.writeRawData(reinterpret_cast<const char*>(&rhs), sizeof(rhs));
+       return out;
+    }
+    QDataStream &operator>>(QDataStream &in, TaskInfo &rhs) {
+       in.readRawData(reinterpret_cast<char*>(&rhs), sizeof(rhs));
+       return in;
+    }
+
 
     //TODO:overload children.append
 
@@ -147,6 +161,7 @@ public:
 
 };
 
+typedef QVector<TaskInfo> TaskInfoList;
 
 
 

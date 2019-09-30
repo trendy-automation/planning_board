@@ -128,13 +128,13 @@ MainWindow::MainWindow(QAbstractItemModel *model, QWidget *parent) :
     treeView->header()->setSectionResizeMode(Planner::Columns::COL_LOSTTIME,QHeaderView::Fixed);
     treeView->header()->setSectionResizeMode(Planner::Columns::COL_NOTES,QHeaderView::Stretch);
     treeView->header()->setSectionResizeMode(Planner::Columns::COL_SCRAP,QHeaderView::Fixed);
-    treeView->header()->setSectionResizeMode(Planner::Columns::COL_OPERATORS,QHeaderView::Fixed);
+//    treeView->header()->setSectionResizeMode(Planner::Columns::COL_OPERATORS,QHeaderView::Fixed);
     treeView->header()->setSectionResizeMode(Planner::Columns::COL_STATUS,QHeaderView::Fixed);
     treeView->header()->setSectionsClickable(false);
     treeView->header()->setDefaultSectionSize(DefaultSectionSize);
     treeView->setColumnWidth(Planner::Columns::COL_PERIOD,COL_PERIOD_SIZE);
     treeView->setColumnWidth(Planner::Columns::COL_LOSTTIME,COL_LOSTTIME_SIZE);
-    treeView->setColumnWidth(Planner::Columns::COL_OPERATORS,COL_OPERATORS_SIZE);
+//    treeView->setColumnWidth(Planner::Columns::COL_OPERATORS,COL_OPERATORS_SIZE);
     treeView->setColumnWidth(Planner::Columns::COL_STATUS,COL_STATUS_SIZE);
     treeView->setEditTriggers(QAbstractItemView::AllEditTriggers);
     //treeView->setMinimumHeight(500);
@@ -150,7 +150,7 @@ MainWindow::MainWindow(QAbstractItemModel *model, QWidget *parent) :
     treeView->setItemDelegateForColumn(Planner::Columns::COL_SEBANGO,new StyledItemDelegate(this));
     treeView->setItemDelegateForColumn(Planner::Columns::COL_LOSTTIME,new SpinBoxDelegate(this,0,60));
     treeView->setItemDelegateForColumn(Planner::Columns::COL_SCRAP,new SpinBoxDelegate(this,0,1000));
-    treeView->setItemDelegateForColumn(Planner::Columns::COL_OPERATORS,new SpinBoxDelegate(this,1,4));
+//    treeView->setItemDelegateForColumn(Planner::Columns::COL_OPERATORS,new SpinBoxDelegate(this,1,4));
     treeView->setItemDelegateForColumn(Planner::Columns::COL_STATUS,new ComboBoxDelegate(this,statusList));
     treeView->setSelectionMode(QAbstractItemView::NoSelection);//SingleSelection
     treeView->setSelectionBehavior(QAbstractItemView::SelectItems);//SelectItems
