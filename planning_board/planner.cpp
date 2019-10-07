@@ -122,6 +122,7 @@ bool Planner::readExcelData(const QString &fileName)
         for(auto kanban=kanbanMap.begin();kanban!=kanbanMap.end();++kanban)
             avgWorkContent+=kanban.value().partWorkContent*kanban.value().countParts;
         avgWorkContent=avgWorkContent/kanbanMap.count();
+        qDebug()<<"avgWorkContent"<<avgWorkContent;
     }
     return ok;
 }
@@ -214,16 +215,25 @@ void Planner::saveTasks(){
     QSettings settings("tasks.tmp", QSettings::IniFormat);
     QByteArray encodedData;
     QDataStream stream(&encodedData, QIODevice::WriteOnly);
+    int i=0;
     for(auto task=_tasks.begin();task!=_tasks.end();++task){
-        qDebug()<<task->kanbanObj.reference;
-        stream << task;
+        qDebug()<<task;//->kanbanObj.reference;
+        stream << *task;
+        settings.setValue(QString("task[%1]").arg(i),stream);
+        i++;
+        //task = settings.value("tasks",QVariant::fromValue(TaskInfo()));
     }
-//    TaskInfoList* data2 = nullptr;
-//    while (!stream.atEnd()) {
-//       stream >> *data2;
+//    QDataStream stream2(&encodedData, QIODevice::WriteOnly);
+//    if (!_tasks.isEmpty()){
+//        TaskInfo* task0 = nullptr;
+//        stream2<<settings.value("task[0]",QVariant::fromValue(TaskInfo()));
+//        while (!stream2.atEnd()) {
+//           stream2 >> *task0;
+//        }
+//        _tasks[0]=*task0;
+//        qDebug()<<task0;
 //    }
 
-    settings.setValue("tasks",stream);
     //settings.setValue("_tasks",stream);
 }
 
@@ -267,7 +277,7 @@ void Planner::planBoardUpdate(/*bool forceUpdate*/)
     }
     lastHour=hourNumber;
     int lostTime;
-    int hourValue=(3600-ct.minute()*60+ct.second())*_tasks.at(hourNumber).countOpertators;
+    int hourValue=(3600-ct.minute()*60+ct.second());//*_tasks.at(hourNumber).countOpertators;
 //    qDebug()<<3<<"_tasks.count()"<<_tasks.count();
     //move all kanban tasks to not attached
     for(int i=0;i<_tasks.count();++i)
@@ -440,10 +450,12 @@ int Planner::getCurrentHourNum() const
     int hourNumber;
     if(ct.hour()<6)
         hourNumber=ct.hour();
-    else if (ct.hour()<15)
-        hourNumber=ct.hour()-6;
-    else
-        hourNumber=ct.hour()-15;
+    else {
+        if (ct.hour()<15)
+            hourNumber=ct.hour()-6;
+        else
+            hourNumber=ct.hour()-15;
+        }
     return hourNumber;
 }
 
@@ -540,9 +552,11 @@ QVariant Planner::data(const QModelIndex &index, int role) const
             return (taskInfo->curHour>=0) ? QString("%1.00-\n%2.00").arg(startHour+row).arg((startHour+row+1)%24) : QString();
         case Columns::COL_PLAN:{
             int plan=0;
-            if(!taskInfo->parent)
-                for(int i=0;i<taskInfo->children.count();++i)
-                    plan+=taskInfo->children.at(i).kanbanObj.countParts;
+            if(!taskInfo->parent){
+            //    for(int i=0;i<taskInfo->children.count();++i)
+            //        plan+=taskInfo->children.at(i).kanbanObj.countParts;
+                plan=3600/avgWorkContent;
+            }
             else
                 plan=taskInfo->kanbanObj.countParts;
             return plan;
@@ -788,7 +802,7 @@ Qt::ItemFlags Planner::flags(const QModelIndex & index) const
 {
     Qt::ItemFlags flags = QAbstractItemModel::flags(index);
     TaskInfo* taskInfo = static_cast<TaskInfo*>(index.internalPointer());
-    int hourNumber = QTime::currentTime().hour();
+    int hourNumber = getCurrentHourNum();
     //if(index.row()<=hourNumber){
         switch(index.column()){
         //        case Columns::COL_ACTUAL:
@@ -825,7 +839,7 @@ Qt::ItemFlags Planner::flags(const QModelIndex & index) const
             //                    taskInfo->lostTimeNotes=="0")
             if(taskInfo->parent)
                if(taskInfo->parent->curHour==hourNumber)
-                   flags | Qt::ItemIsEditable;
+                   return flags | Qt::ItemIsEditable;
             return flags & ~Qt::ItemIsEditable;
         }
 //        case Columns::COL_OPERATORS:{
@@ -933,19 +947,19 @@ bool Planner::saveExcelReport(const QString &fileName)
 {
     qDebug()<<"saveExcelReport"<<fileName;
     Document *xlsx= new Document(fileName);
-    qDebug()<<1;
+    //qDebug()<<1;
     for(int j=0;j<headers.count();j++){
-        qDebug()<<2;
+        //qDebug()<<2;
         xlsx->write(1,j+1,headers.value(headers.keys().at(j)));
     }
     for(int j=0;j<headers.count();j++)
         for(int i=0;i<_tasks.count();i++)
             if(j==Columns::COL_NOTES){
-                qDebug()<<3;
+                //qDebug()<<3;
 //                xlsx->write(i+2,j+1,lostTimeNoteList.at(data(createIndex(i,j)).toInt()));
                 xlsx->write(i+2,j+1,_tasks.at(i).taskNote);
             } else {
-                //qDebug()<<4<<data(createIndex(i,j),Qt::DisplayRole);
+                qDebug()<<4<<data(createIndex(i,j),Qt::DisplayRole);
                 //xlsx->write(i+2,j+1,data(createIndex(i,j),Qt::DisplayRole));
                 //qDebug()<<5;
             }
@@ -959,20 +973,25 @@ int Planner::getProgress()
     int workContent=0;
     int doneContent=0;
 //    qDebug()<<1;
-    for(int i=0;i<_tasks.count();i++)
+    for(int i=0;i<_tasks.count();i++){
+        //TODO calc non production tasks
+        workContent=3600/avgWorkContent;
         for(int j=0;j<_tasks[i].children.count();j++){
-            if(!_tasks[i].children[j].canceled)
-                workContent+=_tasks[i].children[j].taskWorkContent;
+            //if(!_tasks[i].children[j].canceled)
+                //workContent+=_tasks[i].children[j].taskWorkContent;
             if(_tasks[i].children[j].done)
-                doneContent+=_tasks[i].children[j].taskWorkContent;
+                doneContent++;
+                //doneContent+=_tasks[i].children[j].taskWorkContent;
             //            qDebug()<<doneContent<<workContent;
         }
+    }
 //    qDebug()<<2;
 //    qDebug()<<doneContent<<workContent;
     if(workContent==0)
         return 0;
 //    qDebug()<<3<<"doneContent"<<doneContent;
     return doneContent*100/workContent;
+
 //    qDebug()<<4;
 }
 

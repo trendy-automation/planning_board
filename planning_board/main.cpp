@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
 
     int LocTsap = settings.value("LocTsap",QString("1002").toInt(&ok,16)).toInt();
     int RemTsap = settings.value("RemTsap",QString("2002").toInt(&ok,16)).toInt();
-    int minRowHeight = settings.value("minRowHeight",170).toInt();
+    int minRowHeight = settings.value("minRowHeight",MIN_ROW_HEIGHT).toInt();
 
     settings.setValue("LocalAddress", LocalAddress);
     settings.setValue("LocTsap", LocTsap);
