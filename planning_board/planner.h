@@ -42,7 +42,7 @@ public:
         COL_SEBANGO,
         COL_LOSTTIME,
         COL_NOTES,
-        COL_SCRAP,
+//        COL_SCRAP,
 //        COL_OPERATORS,
         COL_STATUS
     };
@@ -64,14 +64,18 @@ public:
     bool setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole) override;
     bool readExcelData(const QString &fileName="planning_data.xlsx");
     Qt::ItemFlags flags(const QModelIndex & index) const override ;
-    int getProgress();
+    int getProgressHour();
+    int getProgressShift();
     int getCurrentHourNum() const;
     int getStartHourNum() const;
+    int getShiftNum() const;
+    int getShiftHoursCount() const {
+        return (QTime::currentTime().hour()<6)?6:9;}
     virtual void keyboardSearch(const QString& search) {}
 
 
 public slots:
-    void parseBuffer(const QByteArray &kanban);
+    void parseBuffer(const QByteArray &inputText);
     void addKanban(const QByteArray &kanban);
     bool kanbanProdused(const QByteArray &kanban);
 
@@ -83,11 +87,13 @@ private:
     void startSMED();
     void finishSMED();    
     void saveTasks();
+    void loadTasks();
     //struct TaskInfo;
     TaskInfoList _tasks;
     TaskInfoList _notAttachedTasks;
     int lastHour = -1;
     int avgWorkContent=100;
+    int notesHour=-1;
 
     QMap<QByteArray,kanbanItem> kanbanMap;
     QMap<Columns,QString> headers;

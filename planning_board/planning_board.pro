@@ -6,6 +6,7 @@
 
 include(../../../shared_classes/message_handler/message_handler.pri)
 include(../../../shared_classes/single_apprun/single_apprun.pri)
+#include(../../../shared_classes/watchdog/watchdog.pri)
 include(plc_station/plc_station.pri)
 #include(../../../shared_classes/qtxlsx/qtxlsx.pri)
 
@@ -35,13 +36,17 @@ DEFINES += APP_OPTION_FORCE='\\"force\\"'
 DEFINES += APP_VER='\\"1.0\\"'
 DEFINES += FONT_TYPE='\\"Helvetica\\"'
 DEFINES += FONT_VALUE=18
-DEFINES += DefaultSectionSize=70
+DEFINES += DefaultSectionSize=60
 DEFINES += COL_PERIOD_SIZE=110
-DEFINES += MIN_ROW_HEIGHT=160
+DEFINES += MIN_ROW_HEIGHT=130
 #DEFINES += COL_SEBANGO_SIZE=130
-DEFINES += COL_LOSTTIME_SIZE=150
-DEFINES += COL_OPERATORS_SIZE=150
+#DEFINES += COL_OPERATORS_SIZE=150
+DEFINES += COL_ACTUAL_SIZE=100
+DEFINES += COL_LOSTTIME_SIZE=100
 DEFINES += COL_STATUS_SIZE=100
+DEFINES += DATA_FORMAT='\\"dd.MM.yyyy\\"'
+DEFINES += TASK_SEPARATOR='\\"|\\"'
+DEFINES += CHILDREN_SEPARATOR='\\";\\"'
 
 CONFIG  += c++17
 

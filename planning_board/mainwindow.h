@@ -32,8 +32,10 @@ public slots:
 private:
     Ui::MainWindow *ui;
     QTreeView *treeView;
-    QLabel *statusLabel;
-    QProgressBar *statusProgressBar;
+    QLabel *statusLabelHour;
+    QProgressBar *statusProgressBarHour;
+    QLabel *statusLabelShift;
+    QProgressBar *statusProgressBarShift;
 
 };
 

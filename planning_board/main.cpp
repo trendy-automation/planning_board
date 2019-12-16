@@ -2,6 +2,7 @@
 #include <QApplication>
 #include "message_handler.h"
 #include "single_apprun.h"
+//#include "watchdog.h"
 #include <QDebug>
 #include <QTimer>
 #include <QThread>
@@ -11,27 +12,31 @@
 #include "plc_station.h"
 #include "planner.h"
 
+
 #include <windows.h>
 #include <iostream>
 
 
 //typedef QVector<TaskInfo> TaskInfoList;
-Q_DECLARE_METATYPE(TaskInfo)
+//Q_DECLARE_METATYPE(TaskInfo)
 Q_DECLARE_METATYPE(TaskInfoList)
 //Q_DECLARE_METATYPE(QVector<TaskInfo>)
-
-//friend QDataStream &operator<<(QDataStream &out, const TaskInfo& rhs) {
-//   out.writeRawData(reinterpret_cast<const char*>(&rhs), sizeof(rhs));
-//   return out;
-//}
-//friend QDataStream &operator>>(QDataStream &in, TaskInfo &rhs) {
-//   in.readRawData(reinterpret_cast<char*>(&rhs), sizeof(rhs));
-//   return in;
-//}
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+//    QStringList args = a.arguments();
+//    Watchdog *watchdog = new Watchdog(&a);
+//    if(args.contains(APP_OPTION_WATHCDOG)){
+//        if(!watchdog->listen(JSONRPC_CLIENT_WATCHDOG_PORT,QString(JSONRPC_WATCHDOG_SERVICENAME).append(".isAlive")))
+//            qDebug() << "Watchdog application cannot run!";
+//        return a.exec();
+//    }
+//    QTextCodec *codec = QTextCodec::codecForName("UTF-8");
+//    QTextEncoder *encoderWithoutBom = codec->makeEncoder( QTextCodec::IgnoreHeader );
+////    QString str("Foobar")
+////    QByteArray bytes  = encoderWithoutBom ->fromUnicode( s );
+
     MessageHandler *msgHandler = new MessageHandler;
     qDebug()<<"MessageHandler finished";
     qRegisterMetaTypeStreamOperators<TaskInfo>("TaskInfo");
@@ -58,9 +63,6 @@ int main(int argc, char *argv[])
             if (keyState == 1 || keyState == -32767)
             {
                 if(i==13){
-
-
-
                     //planner->addKanban(*buffer);
                     if (!buffer->isEmpty())
                         planner->parseBuffer(*buffer);
