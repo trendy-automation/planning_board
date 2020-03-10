@@ -9,6 +9,7 @@ include(../../../shared_classes/single_apprun/single_apprun.pri)
 #include(../../../shared_classes/watchdog/watchdog.pri)
 include(plc_station/plc_station.pri)
 #include(../../../shared_classes/qtxlsx/qtxlsx.pri)
+include(udpreceiver/udpreceiver.pri)
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../shared_classes/qtxlsx/build-qtxlsx-Release/release/ -lQtXlsx
 #else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../shared_classes/qtxlsx/build-qtxlsx-Release/debug/ -lQtXlsx
@@ -35,7 +36,7 @@ DEFINES += APP_OPTION_WATHCDOG='\\"watchdog\\"'
 DEFINES += APP_OPTION_FORCE='\\"force\\"'
 DEFINES += APP_VER='\\"1.0\\"'
 DEFINES += FONT_TYPE='\\"Helvetica\\"'
-DEFINES += FONT_VALUE=18
+DEFINES += FONT_VALUE=16
 DEFINES += DefaultSectionSize=60
 DEFINES += COL_PERIOD_SIZE=110
 DEFINES += MIN_ROW_HEIGHT=130
@@ -47,6 +48,9 @@ DEFINES += COL_STATUS_SIZE=100
 DEFINES += DATA_FORMAT='\\"dd.MM.yyyy\\"'
 DEFINES += TASK_SEPARATOR='\\"|\\"'
 DEFINES += CHILDREN_SEPARATOR='\\";\\"'
+#PLC UDP connection properties
+DEFINES += UDP_PORT='2000'
+DEFINES += UDP_PLC_HOST='\\"10.208.105.174\\"'
 
 CONFIG  += c++17
 

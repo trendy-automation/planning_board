@@ -11,6 +11,8 @@
 //#include <QNetworkInterface>
 #include "plc_station.h"
 #include "planner.h"
+#include "udpreceiver.h"
+
 
 
 #include <windows.h>
@@ -135,6 +137,9 @@ int main(int argc, char *argv[])
 
     MainWindow w(planner);
     w.show();
+    UdpReceiver * udpReceiver = new UdpReceiver;
+
+    QObject::connect(udpReceiver, &UdpReceiver::dataReceived, planner, &Planner::kanbanProdused,Qt::QueuedConnection);
     Plc_station * plcPartner = new Plc_station;
     QObject::connect(plcPartner, &Plc_station::dataReceived, planner, &Planner::kanbanProdused,Qt::QueuedConnection);
     plcPartner->setObjectName("DP_4B45X");

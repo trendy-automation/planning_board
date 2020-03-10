@@ -141,8 +141,9 @@ MainWindow::MainWindow(QAbstractItemModel *model, QWidget *parent) :
     treeView->header()->setSectionResizeMode(Planner::Columns::COL_PERIOD,QHeaderView::Fixed);
     treeView->header()->setSectionResizeMode(Planner::Columns::COL_PLAN,QHeaderView::Fixed);
     treeView->header()->setSectionResizeMode(Planner::Columns::COL_ACTUAL,QHeaderView::Fixed);
+    treeView->header()->setSectionResizeMode(Planner::Columns::COL_DELTA,QHeaderView::ResizeToContents);
     treeView->header()->setSectionResizeMode(Planner::Columns::COL_SEBANGO,QHeaderView::ResizeToContents);
-    treeView->header()->setSectionResizeMode(Planner::Columns::COL_LOSTTIME,QHeaderView::Fixed);
+    treeView->header()->setSectionResizeMode(Planner::Columns::COL_LOSTTIME,QHeaderView::ResizeToContents);
     treeView->header()->setSectionResizeMode(Planner::Columns::COL_NOTES,QHeaderView::Stretch);
 //    treeView->header()->setSectionResizeMode(Planner::Columns::COL_SCRAP,QHeaderView::Fixed);
 //    treeView->header()->setSectionResizeMode(Planner::Columns::COL_OPERATORS,QHeaderView::Fixed);
@@ -166,7 +167,7 @@ MainWindow::MainWindow(QAbstractItemModel *model, QWidget *parent) :
     treeView->setItemDelegateForColumn(Planner::Columns::COL_NOTES, new ComboBoxDelegate(this,taskNoteList));
     treeView->setItemDelegateForColumn(Planner::Columns::COL_PERIOD,new StyledItemDelegate(this));
     treeView->setItemDelegateForColumn(Planner::Columns::COL_SEBANGO,new StyledItemDelegate(this));
-    treeView->setItemDelegateForColumn(Planner::Columns::COL_LOSTTIME,new SpinBoxDelegate(this,0,60));
+//    treeView->setItemDelegateForColumn(Planner::Columns::COL_LOSTTIME,new SpinBoxDelegate(this,0,80));
 //    treeView->setItemDelegateForColumn(Planner::Columns::COL_SCRAP,new SpinBoxDelegate(this,0,1000));
 //    treeView->setItemDelegateForColumn(Planner::Columns::COL_OPERATORS,new SpinBoxDelegate(this,1,4));
     treeView->setItemDelegateForColumn(Planner::Columns::COL_STATUS,new ComboBoxDelegate(this,statusList));

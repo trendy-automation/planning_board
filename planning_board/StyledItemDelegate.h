@@ -22,6 +22,7 @@ public:
         QFontMetrics metrics(option.font);
         QString text(index.data().toString());
         QRect outRect = metrics.boundingRect(QRect(QPoint(0, 0), baseSize), Qt::AlignCenter, text);
+        //outRect=outRect.adjusted(0,5,0,-5);
 //        qDebug() << outRect.height();
         //baseSize.setHeight(outRect.height()*(text.count("\n")-1));
         //baseSize.setHeight(qMax(qMax(58,outRect.height()),24*(text.count("\n"))));

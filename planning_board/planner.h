@@ -39,6 +39,7 @@ public:
         COL_PERIOD,
         COL_PLAN,
         COL_ACTUAL,
+        COL_DELTA,
         COL_SEBANGO,
         COL_LOSTTIME,
         COL_NOTES,
