@@ -20,7 +20,7 @@ git config --global http.proxy http://kolesnik:P%40ssw0rsdf@proxy.standard.corp:
 git config --global https.proxy https://kolesnik:P%40ssw0rsdf@proxy.standard.corp:8080
 
 ilya-kolesnic@yandex.ru
-basic748
+xxxxx
 trendy-automation
 
 cd /F/Qt_projects/planning_board/source
